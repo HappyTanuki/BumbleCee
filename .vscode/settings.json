@@ -69,6 +69,10 @@
         "iomanip": "cpp",
         "iosfwd": "cpp",
         "limits": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "cinttypes": "cpp",
+        "bitset": "cpp",
+        "set": "cpp",
+        "regex": "cpp"
     }
 }

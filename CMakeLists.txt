@@ -5,7 +5,8 @@ set(BOT_NAME "BumbleCee")
 
 project(${BOT_NAME})
 aux_source_directory("src" coresrc)
-add_executable(${BOT_NAME} ${coresrc})
+aux_source_directory("src/Commands" commands)
+add_executable(${BOT_NAME} ${coresrc} ${commands})
 
 string(ASCII 27 Esc)
 
@@ -74,3 +75,5 @@ else()
 
     target_link_libraries(${BOT_NAME} dpp)
 endif()
+
+#set(CMAKE_CXX_FLAGS "-g")

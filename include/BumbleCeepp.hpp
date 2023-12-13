@@ -1,7 +1,10 @@
-#pragma once
-#include "Bot.hpp"
+#ifndef _BUMBLECEEPP_HPP_
+#define _BUMBLECEEPP_HPP_
 #include <string>
 #include <list>
+#include <mutex>
+#include <Bot.hpp>
+#include <dpp/dpp.h>
 
 class BumbleCeepp : public IBot {
 public:
@@ -9,12 +12,19 @@ public:
         static BumbleCeepp Instance(Token);
         return &Instance;
     }
-    void enqueue(std::string);
-    std::string dequeue();
+    void enqueue(struct FQueueElement Element);
+
+    void QueuePlay();
+
+    uint32_t VoiceJoinedShardId;
 protected:
-    std::list<std::string> MusicQueue;
 private:
     BumbleCeepp(std::string Token);
 
     void OnCommand(const dpp::slashcommand_t& Event);
+
+    std::list<struct FQueueElement> MusicQueue;
+    std::mutex QueueMutex;
 };
+
+#endif

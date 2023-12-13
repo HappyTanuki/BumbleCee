@@ -1,11 +1,11 @@
-#include "Bot.hpp"
+#include <Bot.hpp>
 
 IBot::IBot(std::string Token) {
-    bot = std::make_shared<dpp::cluster>(Token);
-    bot->on_log(dpp::utility::cout_logger());
+    BotCluster = std::make_shared<dpp::cluster>(Token);
+    BotCluster->on_log(dpp::utility::cout_logger());
 
-    bot->on_slashcommand([this](const dpp::slashcommand_t& Event) {OnCommand(Event);});
-    bot->on_ready([this](const dpp::ready_t& Event) {OnReady(Event);});
+    BotCluster->on_slashcommand([this](const dpp::slashcommand_t& Event) {OnCommand(Event);});
+    BotCluster->on_ready([this](const dpp::ready_t& Event) {OnReady(Event);});
 }
 
 void IBot::AddCommand(ICommand &Command) {
@@ -13,18 +13,18 @@ void IBot::AddCommand(ICommand &Command) {
 }
 
 void IBot::Start() {
-    bot->start(dpp::st_wait);
+    BotCluster->start(dpp::st_wait);
 }
 
 void IBot::OnReady(const dpp::ready_t& Event) {
     if (!dpp::run_once<struct register_bot_commands>())
         return;
 
-    bot->global_bulk_command_delete();
+    //bot->global_bulk_command_delete();
 
     for (auto command : CommandsArray) {
         for (auto Alias : command->CommandObjectVector) {
-            bot->global_command_create(Alias);
+            BotCluster->global_command_create(Alias);
         }
     }
 }

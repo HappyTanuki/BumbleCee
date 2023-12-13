@@ -1,4 +1,5 @@
-#pragma once
-#include "Commands/Play.hpp"
-#include "Commands/Queue.hpp"
-#include "Commands/Join.hpp"
+#ifndef _COMMANDS_HPP_
+#define _COMMANDS_HPP_
+#include <Commands/Play.hpp>
+
+#endif
