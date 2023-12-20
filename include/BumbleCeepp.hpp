@@ -17,6 +17,7 @@ public:
     void QueuePlay();
 
     uint32_t VoiceJoinedShardId;
+    bool Repeat;
 protected:
 private:
     BumbleCeepp(std::string Token);
@@ -25,6 +26,8 @@ private:
 
     std::list<struct FQueueElement> MusicQueue;
     std::mutex QueueMutex;
+    std::mutex QueuePlayMutex;
+    bool QueuePlaying;
 };
 
 #endif

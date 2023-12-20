@@ -34,15 +34,16 @@ endif()
 target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
-    /usr/local/include/opus
+    /usr/include/opus
 )
 
 target_link_libraries(${BOT_NAME}
     dl
-    oggz
+    dpp
     opus
     opusfile
     ogg
+    oggz
     ${CMAKE_THREAD_LIBS_INIT}
     ${OPENSSL_CRYPTO_LIBRARY} 
     ${OPENSSL_SSL_LIBRARY}
@@ -76,4 +77,4 @@ else()
     target_link_libraries(${BOT_NAME} dpp)
 endif()
 
-#set(CMAKE_CXX_FLAGS "-g")
+set(CMAKE_CXX_FLAGS "-g")

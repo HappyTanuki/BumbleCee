@@ -13,19 +13,18 @@ Queue::Queue(std::shared_ptr<BumbleCeepp> Bot) {
 
 void Queue::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event) {
     dpp::embed embed = dpp::embed()
+        .set_title("큐 항목:")
         .set_color(dpp::colors::sti_blue)
-        .set_title("영상 제목&링크")
-        .set_url("https://dpp.dev/")
-        .set_description("영상 설명란")
-        .set_image("https://dpp.dev/DPP-Logo.png")
-        .set_footer(
-            dpp::embed_footer()
-            .set_text("업로더 이름")
-            .set_icon("https://dpp.dev/DPP-Logo.png")
-        )
         .set_timestamp(time(0));
 
-    dpp::message msg(Event.command.channel_id, "some Text");
+    for (auto iter = MusicQueue.begin(); iter != MusicQueue.end(); iter++) {
+        embed.add_field(
+            iter->title,
+            iter->description
+        );
+    }
+
+    dpp::message msg(Event.command.channel_id, "현재 큐에 있는 항목:");
     msg.add_embed(embed);
 
     Event.reply(msg);

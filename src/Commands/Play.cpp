@@ -1,7 +1,9 @@
+// #include <Python.h>
 #include <Commands/Play.hpp>
 #include <dpp/dpp.h>
 #include <dpp/nlohmann/json.hpp>
-#include <stdlib.h>
+#include <string>
+#include <ctime>
 
 using json = nlohmann::json;
 
@@ -36,6 +38,10 @@ void Play::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcomm
     }
 
     std::string Query = std::get<std::string>(Event.get_parameter("query"));
+    
+    // Event.thinking(false, [](const dpp::confirmation_callback_t &Callback) {
+    //     return dpp::confirmation();
+    // });
 
     system(("./yt-dlp -o temp --write-info-json -f 251 " + Query).c_str());
 
@@ -44,7 +50,7 @@ void Play::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcomm
     infofile >> document;
     system("rm -f temp.info.json");
 
-    system(("ffmpeg -i temp -c copy " + std::string(to_string(document["id"])) + ".ogg").c_str());
+    system(("ffmpeg -y -i temp -c copy " + std::string(to_string(document["id"])) + ".ogg").c_str());
     system("rm -f temp");
 
     FQueueElement Data = {std::string(document["title"]),
@@ -55,8 +61,17 @@ void Play::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcomm
                 Event.command.guild_id};
 
     Bot->enqueue(Data);
+    std::cout << "queued\n";
 
     dpp::message msg(Event.command.channel_id, "큐에 다음 곡을 추가했습니다:");
+
+    time_t SongLength = int(document["duration"]);
+    char SongLengthStr[10];
+    tm t;
+    t.tm_sec = SongLength%60;
+    t.tm_min = SongLength/60;
+    t.tm_hour = SongLength/360;
+    strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
 
     msg.add_embed(dpp::embed()
     .set_color(dpp::colors::sti_blue)
@@ -66,11 +81,13 @@ void Play::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcomm
     .set_image(document["thumbnail"])
     .add_field(
         "길이",
-        to_string(document["duration"]),
+        SongLengthStr,
         true
     ));
 
     Event.reply(msg);
+
+    std::cout << "replied\n";
 
     dpp::voiceconn* v = Event.from->get_voice(Event.command.guild_id);
 
