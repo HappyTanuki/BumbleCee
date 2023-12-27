@@ -11,15 +11,17 @@ int main() {
 
     std::shared_ptr<BumbleCeepp> BumbleBee(BumbleCeepp::GetInstance(configdocument["token"]));
 
-    Play Command1(BumbleBee);
-    Repeat Command2(BumbleBee);
-    Queue Command3(BumbleBee);
-    Skip Command4(BumbleBee);
+    Commands::Play Command1(BumbleBee);
+    Commands::Repeat Command2(BumbleBee);
+    Commands::Queue Command3(BumbleBee);
+    Commands::Skip Command4(BumbleBee);
+    Commands::Leave Command5(BumbleBee);
 
     BumbleBee->AddCommand(Command1);
     BumbleBee->AddCommand(Command2);
     BumbleBee->AddCommand(Command3);
     BumbleBee->AddCommand(Command4);
+    BumbleBee->AddCommand(Command5);
 
     BumbleBee->Start();
 

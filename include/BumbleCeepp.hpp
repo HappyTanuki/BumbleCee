@@ -18,6 +18,7 @@ public:
 
     uint32_t VoiceJoinedShardId;
     bool Repeat;
+    std::mutex YTDLMutex;
 protected:
 private:
     BumbleCeepp(std::string Token);
@@ -26,7 +27,6 @@ private:
 
     std::list<struct FQueueElement> MusicQueue;
     std::mutex QueueMutex;
-    std::mutex QueuePlayMutex;
     bool QueuePlaying;
 };
 

@@ -1,13 +1,13 @@
-#ifndef _QUEUE_HPP_
-#define _QUEUE_HPP_
+#ifndef _LEAVE_HPP_
+#define _LEAVE_HPP_
 #include <CommandType.hpp>
 #include <BumbleCeepp.hpp>
 #include <memory>
 
 namespace Commands {
-    class Queue : public ICommand {
+    class Leave : public ICommand {
     public:
-        Queue(std::shared_ptr<BumbleCeepp> Bot);
+        Leave(std::shared_ptr<BumbleCeepp> Bot);
 
         void operator()(const dpp::slashcommand_t& Event) {}
         void operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event);

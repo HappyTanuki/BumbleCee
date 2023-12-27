@@ -21,7 +21,6 @@ void BumbleCeepp::QueuePlay(){
         return;
     }
     QueuePlaying = true;
-    QueuePlayMutex.lock();
 
     std::thread T1([this] (){
         dpp::discord_client* JoinedShared = BotCluster->get_shard(VoiceJoinedShardId);
@@ -34,13 +33,18 @@ void BumbleCeepp::QueuePlay(){
             FQueueElement Music = MusicQueue.front();
             QueueMutex.unlock();
 
+            std::cout << "Queue:\n";
+            for (auto iter = MusicQueue.begin(); iter != MusicQueue.end(); iter++) {
+                std::cout << iter->title << "\n";
+            }
+
             dpp::voiceconn* v = JoinedShared->get_voice(Music.guild_id);
             if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
                 return;
             }
 
             /* load the audio file with oggz */
-            OGGZ *track_og = oggz_open((std::string(Music.FileName.c_str()) + ".ogg").c_str(), OGGZ_READ);
+            OGGZ *track_og = oggz_open(("Music/" + std::string(Music.FileName.c_str()) + ".ogg").c_str(), OGGZ_READ);
 
             /* If there was an issue reading the file, tell the user and stop */
             if (!track_og) {
@@ -100,8 +104,6 @@ void BumbleCeepp::QueuePlay(){
                 QueueMutex.unlock();
             }
         }
-        
-        QueuePlayMutex.unlock();
         QueuePlaying = false;
 
         std::cout << "Queue ended\n";

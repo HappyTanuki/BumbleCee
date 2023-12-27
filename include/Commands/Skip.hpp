@@ -4,14 +4,16 @@
 #include <BumbleCeepp.hpp>
 #include <memory>
 
-class Skip : public ICommand {
-public:
-    Skip(std::shared_ptr<BumbleCeepp> Bot);
+namespace Commands {
+    class Skip : public ICommand {
+    public:
+        Skip(std::shared_ptr<BumbleCeepp> Bot);
 
-    void operator()(const dpp::slashcommand_t& Event) {}
-    void operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event);
-private:
-    std::shared_ptr<BumbleCeepp> Bot;
-};
+        void operator()(const dpp::slashcommand_t& Event) {}
+        void operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event);
+    private:
+        std::shared_ptr<BumbleCeepp> Bot;
+    };
+}
 
 #endif
