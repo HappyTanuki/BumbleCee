@@ -6,5 +6,6 @@
 #include <Commands/Queue.hpp>
 #include <Commands/Skip.hpp>
 #include <Commands/Leave.hpp>
+#include <Commands/Delete.hpp>
 
 #endif

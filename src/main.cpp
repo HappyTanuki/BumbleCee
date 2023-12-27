@@ -16,12 +16,14 @@ int main() {
     Commands::Queue Command3(BumbleBee);
     Commands::Skip Command4(BumbleBee);
     Commands::Leave Command5(BumbleBee);
+    Commands::Delete Command6(BumbleBee);
 
     BumbleBee->AddCommand(Command1);
     BumbleBee->AddCommand(Command2);
     BumbleBee->AddCommand(Command3);
     BumbleBee->AddCommand(Command4);
     BumbleBee->AddCommand(Command5);
+    BumbleBee->AddCommand(Command6);
 
     BumbleBee->Start();
 

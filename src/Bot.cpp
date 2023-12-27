@@ -20,7 +20,7 @@ void IBot::OnReady(const dpp::ready_t& Event) {
     if (!dpp::run_once<struct register_bot_commands>())
         return;
 
-    //bot->global_bulk_command_delete();
+    //BotCluster->global_bulk_command_delete();
 
     for (auto command : CommandsArray) {
         for (auto Alias : command->CommandObjectVector) {

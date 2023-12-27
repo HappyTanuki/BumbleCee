@@ -16,6 +16,17 @@ void BumbleCeepp::enqueue(struct FQueueElement Element) {
     QueueMutex.unlock();
 }
 
+struct FQueueElement BumbleCeepp::QueueDelete(int Index) {
+    QueueMutex.lock();
+    auto iter = MusicQueue.begin();
+    std::advance(iter, Index);
+    auto ReturnValue = *iter;
+    MusicQueue.erase(iter);
+    QueueMutex.unlock();
+
+    return ReturnValue;
+}
+
 void BumbleCeepp::QueuePlay(){
     if (QueuePlaying) {
         return;
@@ -32,11 +43,6 @@ void BumbleCeepp::QueuePlay(){
             QueueMutex.lock();
             FQueueElement Music = MusicQueue.front();
             QueueMutex.unlock();
-
-            std::cout << "Queue:\n";
-            for (auto iter = MusicQueue.begin(); iter != MusicQueue.end(); iter++) {
-                std::cout << iter->title << "\n";
-            }
 
             dpp::voiceconn* v = JoinedShared->get_voice(Music.guild_id);
             if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
@@ -95,6 +101,10 @@ void BumbleCeepp::QueuePlay(){
             while(v->voiceclient->is_playing()) {}
 
             QueueMutex.lock();
+            if (MusicQueue.empty()) {
+                QueueMutex.unlock();
+                break;
+            }
             MusicQueue.pop_front();
             QueueMutex.unlock();
 

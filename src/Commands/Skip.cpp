@@ -6,11 +6,9 @@ namespace Commands {
     Skip::Skip(std::shared_ptr<BumbleCeepp> Bot) {
         this->Bot = Bot;
 
-        dpp::slashcommand Command = dpp::slashcommand("skip", "현재곡 스킵", Bot->BotCluster->me.id);
-        dpp::slashcommand Alias = dpp::slashcommand("s", "현재곡 스킵", Bot->BotCluster->me.id);
+        dpp::slashcommand Command = dpp::slashcommand("s", "현재곡 스킵", Bot->BotCluster->me.id);
 
         CommandObjectVector.push_back(Command);
-        CommandObjectVector.push_back(Alias);
     }
 
     void Skip::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event) {

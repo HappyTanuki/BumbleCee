@@ -13,6 +13,7 @@ public:
         return &Instance;
     }
     void enqueue(struct FQueueElement Element);
+    struct FQueueElement QueueDelete(int Index);
 
     void QueuePlay();
 

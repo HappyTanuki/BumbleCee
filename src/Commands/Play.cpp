@@ -1,4 +1,3 @@
-// #include <Python.h>
 #include <Commands/Play.hpp>
 #include <dpp/dpp.h>
 #include <dpp/nlohmann/json.hpp>
@@ -11,20 +10,13 @@ namespace Commands {
     Play::Play(std::shared_ptr<BumbleCeepp> Bot) {
         this->Bot = Bot;
 
-        dpp::slashcommand Command = dpp::slashcommand("play", "노래 재생", Bot->BotCluster->me.id);
+        dpp::slashcommand Command = dpp::slashcommand("p", "노래 재생", Bot->BotCluster->me.id);
 
         Command.add_option(
             dpp::command_option(dpp::co_string, "query", "링크 또는 검색어", Bot->BotCluster->me.id)
         );
 
-        dpp::slashcommand Alias = dpp::slashcommand("p", "노래 재생", Bot->BotCluster->me.id);
-
-        Alias.add_option(
-            dpp::command_option(dpp::co_string, "query", "링크 또는 검색어", Bot->BotCluster->me.id)
-        );
-
         CommandObjectVector.push_back(Command);
-        CommandObjectVector.push_back(Alias);
     }
 
     void Play::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event) {
