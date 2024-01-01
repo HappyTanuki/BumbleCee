@@ -24,7 +24,7 @@ namespace Commands {
 
         auto PopedElement = Bot->QueueDelete(atoi(Pos.c_str()));
 
-        dpp::embed embed = PopedElement
+        dpp::embed embed = PopedElement.embed
             .set_timestamp(time(0));
 
         dpp::message msg(Event.command.channel_id, "다음 항목을 큐에서 삭제했습니다!:");
