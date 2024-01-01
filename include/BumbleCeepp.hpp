@@ -8,10 +8,7 @@
 
 class BumbleCeepp : public IBot {
 public:
-    static BumbleCeepp* GetInstance(std::string Token) {
-        static BumbleCeepp Instance(Token);
-        return &Instance;
-    }
+    BumbleCeepp(std::string Token, int TotalShard);
     void enqueue(struct FQueueElement Element);
     struct FQueueElement QueueDelete(int Index);
 
@@ -20,13 +17,10 @@ public:
     uint32_t VoiceJoinedShardId;
     bool Repeat;
     std::mutex YTDLMutex;
+    std::list<struct FQueueElement> MusicQueue;
 protected:
 private:
-    BumbleCeepp(std::string Token);
-
     void OnCommand(const dpp::slashcommand_t& Event);
-
-    std::list<struct FQueueElement> MusicQueue;
     std::mutex QueueMutex;
     bool QueuePlaying;
 };

@@ -9,7 +9,7 @@ int main() {
     std::ifstream configfile("config.json");
     configfile >> configdocument;
 
-    std::shared_ptr<BumbleCeepp> BumbleBee(BumbleCeepp::GetInstance(configdocument["token"]));
+    std::shared_ptr<BumbleCeepp> BumbleBee = std::make_shared<BumbleCeepp>(configdocument["token"], 1);
 
     Commands::Play Command1(BumbleBee);
     Commands::Repeat Command2(BumbleBee);

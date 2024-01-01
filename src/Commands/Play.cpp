@@ -2,6 +2,7 @@
 #include <dpp/dpp.h>
 #include <dpp/nlohmann/json.hpp>
 #include <string>
+#include <filesystem>
 #include <ctime>
 
 using json = nlohmann::json;
@@ -38,54 +39,70 @@ namespace Commands {
 
         Bot->YTDLMutex.lock();
         std::cout << "다운로드 시작" << "\n";
-        system(("./yt-dlp -o temp -w --write-info-json -f 251 " + Query + " & wait").c_str());
+        std::system(("python3 yt-download.py \"" + Query + "\" & wait").c_str());
         std::cout << "다운로드 완료" << "\n";
-
-        json document;
-        std::ifstream infofile("temp.info.json");
-        infofile >> document;
-        infofile.close();
-        system("rm -f temp.info.json");
-
-        system(("yes n 2>/dev/null | ffmpeg -hide_banner -i temp -c copy Music/" + std::string(to_string(document["id"])) + ".ogg").c_str());
-        system("rm -f temp");
-        
         Bot->YTDLMutex.unlock();
-
-        FQueueElement Data = {std::string(document["title"]),
-                    std::string(document["uploader"]),
-                    std::string(document["id"]),
-                    std::string(document["thumbnail"]),
-                    to_string(document["duration"]),
-                    Event.command.guild_id};
-
-        Bot->enqueue(Data);
-        std::cout << "queued\n";
 
         dpp::message msg(Event.command.channel_id, "큐에 다음 곡을 추가했습니다:");
 
-        time_t SongLength = int(document["duration"]);
-        char SongLengthStr[10];
-        tm t;
-        t.tm_sec = SongLength%60;
-        t.tm_min = SongLength/60;
-        t.tm_hour = SongLength/360;
-        strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
+        std::ifstream infofile, idfile;
+        json document;
+        std::string ID;
+        std::queue<FQueueElement> RequestedMusic;
+        idfile.open("Temp/CurMusic");
+        while (std::getline(idfile, ID)) {
+            std::cout << ID << "\n";
+            infofile.open("Music/" + ID + ".info.json");
+            infofile >> document;
+            infofile.close();
 
-        msg.add_embed(dpp::embed()
-        .set_color(dpp::colors::sti_blue)
-        .set_title(document["title"])
-        .set_description(document["uploader"])
-        .set_url(Query)
-        .set_image(document["thumbnail"])
-        .add_field(
-            "길이",
-            SongLengthStr,
-            true
-        ));
+            time_t SongLength = int(document["duration"]);
+            char SongLengthStr[10];
+            tm t;
+            t.tm_sec = SongLength%60;
+            t.tm_min = SongLength/60;
+            t.tm_hour = SongLength/360;
+            strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
 
+            FQueueElement Data = {
+                std::string(document["webpage_url"]),
+                std::string(document["title"]),
+                std::string(document["uploader"]),
+                std::string(document["id"]),
+                std::string(document["thumbnail"]),
+                to_string(document["duration"]),
+                Event.command.guild_id,
+                dpp::embed()
+                    .set_color(dpp::colors::sti_blue)
+                    .set_title(Data.title)
+                    .set_description(Data.description)
+                    .set_url(Data.URL)
+                    .set_image(Data.thumbnail)
+                    .add_field(
+                        "길이",
+                        SongLengthStr,
+                        true
+                    )
+            };
+            Bot->enqueue(Data);
+            RequestedMusic.push(Data);
+        }
+        idfile.close();
+        //std::system("rm -f Temp/CurMusic");
+        std::cout << "queued\n";
+
+        msg.add_embed(RequestedMusic.front().embed);
+        RequestedMusic.pop();
         Event.edit_original_response(msg);
 
+        while (!RequestedMusic.empty()) {
+            dpp::message followMsg(Event.command.channel_id, "");
+
+            followMsg.add_embed(RequestedMusic.front().embed);
+            RequestedMusic.pop();
+
+            Bot->BotCluster->message_create(followMsg);
+        }
         std::cout << "replied\n";
 
         dpp::voiceconn* v = Event.from->get_voice(Event.command.guild_id);

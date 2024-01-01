@@ -6,7 +6,7 @@
 #include <FQueueElement.hpp>
 #include <thread>
 
-BumbleCeepp::BumbleCeepp(std::string Token) : IBot(Token) {
+BumbleCeepp::BumbleCeepp(std::string Token, int TotalShard) : IBot(Token, TotalShard) {
     VoiceJoinedShardId = 0;
 }
 
@@ -46,6 +46,7 @@ void BumbleCeepp::QueuePlay(){
 
             dpp::voiceconn* v = JoinedShared->get_voice(Music.guild_id);
             if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
+                std::cout << "not in voicechat. quit musicplay";
                 return;
             }
 

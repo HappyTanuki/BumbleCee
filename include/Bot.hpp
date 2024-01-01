@@ -7,7 +7,7 @@
 class IBot {
 private:
 public:
-    IBot(std::string Token);
+    IBot(std::string Token, int TotalShard);
     void AddCommand(ICommand &Command);
     void Start();
 

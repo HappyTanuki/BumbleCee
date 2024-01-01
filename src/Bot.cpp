@@ -1,7 +1,7 @@
 #include <Bot.hpp>
 
-IBot::IBot(std::string Token) {
-    BotCluster = std::make_shared<dpp::cluster>(Token);
+IBot::IBot(std::string Token, int TotalShard) {
+    BotCluster = std::make_shared<dpp::cluster>(Token, dpp::i_default_intents, TotalShard);
     BotCluster->on_log(dpp::utility::cout_logger());
 
     BotCluster->on_slashcommand([this](const dpp::slashcommand_t& Event) {OnCommand(Event);});

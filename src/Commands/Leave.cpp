@@ -11,7 +11,7 @@ namespace Commands {
     }
 
     void Leave::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event) {
-        std::cout << "disconnecting..";
+        std::cout << "disconnecting..\n";
 
         dpp::voiceconn* v = Event.from->get_voice(Event.command.guild_id);
 
@@ -20,6 +20,7 @@ namespace Commands {
         }
         
         v->voiceclient->stop_audio();
+        MusicQueue.clear();
         Event.from->disconnect_voice(Event.command.guild_id);
 
         dpp::message msg(Event.command.channel_id, "음성 채팅방을 떠납니다!");
