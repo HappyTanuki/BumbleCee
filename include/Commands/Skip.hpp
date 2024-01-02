@@ -1,19 +1,15 @@
-#ifndef _SKIP_HPP_
-#define _SKIP_HPP_
-#include <CommandType.hpp>
+#pragma once
+#include <Commands/CommandType.hpp>
 #include <BumbleCeepp.hpp>
 #include <memory>
 
-namespace Commands {
-    class Skip : public ICommand {
-    public:
-        Skip(std::shared_ptr<BumbleCeepp> Bot);
+namespace commands {
+class Skip : public ICommand {
+public:
+    Skip(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap);
 
-        void operator()(const dpp::slashcommand_t& Event) {}
-        void operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event);
-    private:
-        std::shared_ptr<BumbleCeepp> Bot;
-    };
+    void operator()(const dpp::slashcommand_t& event);
+private:
+    std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap;
+};
 }
-
-#endif

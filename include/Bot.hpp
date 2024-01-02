@@ -1,22 +1,16 @@
-#ifndef _BOT_HPP_
-#define _BOT_HPP_
-#include <CommandType.hpp>
+#pragma once
+#include <Commands/CommandType.hpp>
 #include <dpp/dpp.h>
 #include <memory>
 
 class IBot {
-private:
 public:
-    IBot(std::string Token, int TotalShard);
-    void AddCommand(ICommand &Command);
-    void Start();
+    IBot(std::string token, int totalShard);
+    void start();
+    void onCommand(const dpp::slashcommand_t &event);
+    void onReady(const dpp::ready_t &event);
 
-    std::shared_ptr<dpp::cluster> BotCluster;
+    std::shared_ptr<dpp::cluster> botCluster;
+    std::vector<std::shared_ptr<commands::ICommand>> commandsArray;
 protected:
-    virtual void OnReady(const dpp::ready_t& event);
-    virtual void OnCommand(const dpp::slashcommand_t& event);
-
-    std::vector<ICommand*> CommandsArray;
 };
-
-#endif

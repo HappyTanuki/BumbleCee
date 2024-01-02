@@ -1,28 +1,15 @@
-#ifndef _BUMBLECEEPP_HPP_
-#define _BUMBLECEEPP_HPP_
+#pragma once
 #include <string>
-#include <list>
-#include <mutex>
 #include <Bot.hpp>
 #include <dpp/dpp.h>
+#include <MusicQueue.hpp>
+#include <memory>
+#include <unordered_map>
 
 class BumbleCeepp : public IBot {
 public:
-    BumbleCeepp(std::string Token, int TotalShard);
-    void enqueue(struct FQueueElement Element);
-    struct FQueueElement QueueDelete(int Index);
-
-    void QueuePlay();
-
-    uint32_t VoiceJoinedShardId;
-    bool Repeat;
-    std::mutex YTDLMutex;
-    std::list<struct FQueueElement> MusicQueue;
-protected:
+    BumbleCeepp(std::string token, int totalShard);
 private:
-    void OnCommand(const dpp::slashcommand_t& Event);
-    std::mutex QueueMutex;
-    bool QueuePlaying;
+    //<guild_id, queue> 쌍임.
+    std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> queueMap;
 };
-
-#endif

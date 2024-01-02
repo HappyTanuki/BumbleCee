@@ -2,26 +2,38 @@
 #include <dpp/dpp.h>
 #include <string>
 
-namespace Commands {
-    Skip::Skip(std::shared_ptr<BumbleCeepp> Bot) {
-        this->Bot = Bot;
+commands::Skip::Skip(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
+    : ICommand(botCluster)
+{
+    this->queueMap = queueMap;
+    dpp::slashcommand command = dpp::slashcommand("s", "현재곡 스킵", botCluster->me.id);
 
-        dpp::slashcommand Command = dpp::slashcommand("s", "현재곡 스킵", Bot->BotCluster->me.id);
+    commandObjectVector.push_back(command);
+}
 
-        CommandObjectVector.push_back(Command);
-    }
+void commands::Skip::operator()(const dpp::slashcommand_t& event) {
+    dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
 
-    void Skip::operator()(std::list<FQueueElement>& MusicQueue, const dpp::slashcommand_t& Event) {
-        dpp::voiceconn* v = Event.from->get_voice(Event.command.guild_id);
-
-        if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
-            return;
-        }
-
-        v->voiceclient->stop_audio();
-
-        Event.reply("스킵했습니다!");
-
+    if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
         return;
     }
+
+    v->voiceclient->stop_audio();
+
+    auto findResult = queueMap->find(event.command.guild_id);
+    if (findResult == queueMap->end())
+    {
+        FMusicQueueID queueID;
+        queueID.guild_id = event.command.guild_id;
+        queueID.shard_id = event.from->shard_id;
+
+        (*queueMap)[queueID.guild_id] = std::make_shared<MusicQueue>(queueID);
+    }
+    std::shared_ptr<MusicQueue> queue = queueMap->find(event.command.guild_id)->second;
+    
+    queue->play(botCluster);
+
+    event.reply("스킵했습니다!");
+
+    return;
 }
