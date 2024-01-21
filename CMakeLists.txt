@@ -35,8 +35,6 @@ target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
     /usr/include/opus
-    /usr/include
-    /usr/local/include
 )
 
 target_link_libraries(${BOT_NAME}

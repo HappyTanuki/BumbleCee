@@ -4,11 +4,31 @@
 #include <opus/opusfile.h>
 #include <thread>
 
-MusicQueue::MusicQueue(FMusicQueueID id)
+MusicQueue::MusicQueue(FMusicQueueID id, std::shared_ptr<dpp::cluster> botCluster)
 {
     this->id = id;
     repeat = false;
-    queuePlaying = false;
+    this->botCluster = botCluster;
+
+    botCluster->on_voice_track_marker([this, botCluster](const dpp::voice_track_marker_t &marker)
+    {
+        std::cout << marker.track_meta << " Marker reached.\n";
+
+        if (empty())
+        {
+            std::cout << "Queue ended\n";
+            playMutex.unlock();
+            return;
+        }
+
+        auto music = pop(0);
+        if (repeat)
+        {
+            (*this) += music;
+        }
+        
+        markerCallback();
+    });
 }
 
 void MusicQueue::operator+=(FQueueElement operand)
@@ -89,7 +109,7 @@ FMusicQueueID MusicQueue::getId()
     return id;
 }
 
-void MusicQueue::markerCallback(std::shared_ptr<dpp::cluster> botCluster)
+void MusicQueue::markerCallback()
 {
     std::cout << "Music play started\n";
 
@@ -97,14 +117,13 @@ void MusicQueue::markerCallback(std::shared_ptr<dpp::cluster> botCluster)
     if (!joinedShard)
     {
         std::cout << "No shard\n";
-        queuePlaying = false;
         return;
     }
 
     if (empty())
     {
         std::cout << "Queue ended\n";
-        queuePlaying = false;
+        playMutex.unlock();
         return;
     }
 
@@ -114,7 +133,6 @@ void MusicQueue::markerCallback(std::shared_ptr<dpp::cluster> botCluster)
     if (!v || !v->voiceclient || !v->voiceclient->is_ready())
     {
         std::cout << "not in voicechat. quit musicplay";
-        queuePlaying = false;
         return;
     }
 
@@ -124,7 +142,6 @@ void MusicQueue::markerCallback(std::shared_ptr<dpp::cluster> botCluster)
     /* If there was an issue reading the file, tell the user and stop */
     if (!track_og) {
         fprintf(stderr, "Error opening file\n");
-        queuePlaying = false;
         return;
     }
 
@@ -169,23 +186,19 @@ void MusicQueue::markerCallback(std::shared_ptr<dpp::cluster> botCluster)
     std::cout << "audio sending complete\n";
 }
 
-void MusicQueue::play(std::shared_ptr<dpp::cluster> botCluster)
+void MusicQueue::play()
 {
-    playMutex.lock();
-    if (queuePlaying)
+    if (!playMutex.try_lock())
     {
-        std::cout << "Already Playing\n";
-        playMutex.unlock();
+        std::cout << "Already playing\n";
         return;
     }
-    queuePlaying = true;
-    playMutex.unlock();
 
     dpp::discord_client* joinedShard = botCluster->get_shard(id.shard_id);
     if (!joinedShard)
     {
         std::cout << "No shard\n";
-        queuePlaying = false;
+        playMutex.unlock();
         return;
     }
 
@@ -193,22 +206,9 @@ void MusicQueue::play(std::shared_ptr<dpp::cluster> botCluster)
     if (!v || !v->voiceclient || !v->voiceclient->is_ready())
     {
         std::cout << "not in voicechat. quit musicplay";
-        queuePlaying = false;
+        playMutex.unlock();
         return;
     }
-
-    botCluster->on_voice_track_marker([this, botCluster, v](const dpp::voice_track_marker_t &marker)
-    {
-        std::cout << marker.track_meta << " Marker reached.\n";
-
-        auto music = pop(0);
-        if (repeat)
-        {
-            (*this) += music;
-        }
-        
-        markerCallback(botCluster);
-    });
-
-    markerCallback(botCluster);
+    
+    markerCallback();
 }

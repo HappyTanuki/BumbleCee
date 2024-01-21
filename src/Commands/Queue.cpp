@@ -54,7 +54,7 @@ dpp::embed makeEmbed(std::list<FQueueElement>::iterator& iter, std::list<FQueueE
 }
 
 commands::Queue::Queue(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : ICommand(botCluster)
+    : VCCommand(botCluster)
 {
     this->queueMap = queueMap;
     dpp::slashcommand command = dpp::slashcommand("q", "노래 예약 큐 확인", botCluster->me.id);
@@ -63,25 +63,24 @@ commands::Queue::Queue(std::shared_ptr<dpp::cluster> botCluster, std::unordered_
 }
 
 void commands::Queue::operator()(const dpp::slashcommand_t& event) {
-    dpp::message msg(event.command.channel_id, "지금 재생 중:");
+    dpp::message msg;
+    msg.set_channel_id(event.command.channel_id);
+    std::shared_ptr<MusicQueue> queue = getQueue(event);
 
-    auto findResult = queueMap->find(event.command.guild_id);
-    if (findResult == queueMap->end())
-    {
-        FMusicQueueID queueID;
-        queueID.guild_id = event.command.guild_id;
-        queueID.shard_id = event.from->shard_id;
-
-        (*queueMap)[queueID.guild_id] = std::make_shared<MusicQueue>(queueID);
+    if (queue->size() < 1) {
+        auto iter = queue->begin();
+        msg.add_embed(makeEmbed(iter, queue->end(), queue->repeat));
     }
-    std::shared_ptr<MusicQueue> queue = queueMap->find(event.command.guild_id)->second;
-
-    msg.add_embed(queue->peek(0).embed);
+    else {
+        msg.set_content("지금 재생 중:");
+        msg.add_embed(queue->peek(0).embed);
+    }
 
     event.reply(msg, [this, queue, event](const dpp::confirmation_callback_t &_event) {
         auto iter = queue->begin();
+        int queueSize = queue->size();
         iter++;
-        for (int i = 0; i < ceil((queue->size() - 1) / 5.0); i++) {
+        for (int i = 0; i < ceil(queueSize / 5.0); i++) {
             dpp::embed followEmbed = makeEmbed(iter, queue->end(), queue->repeat, i * 5 + 1);
 
             dpp::message followMsg;

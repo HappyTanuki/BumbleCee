@@ -8,7 +8,7 @@
 using json = nlohmann::json;
 
 commands::Play::Play(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : ICommand(botCluster)
+    : VCCommand(botCluster)
 {
     this->queueMap = queueMap;
     dpp::slashcommand command = dpp::slashcommand("p", "노래 재생", botCluster->me.id);
@@ -20,7 +20,8 @@ commands::Play::Play(std::shared_ptr<dpp::cluster> botCluster, std::unordered_ma
     commandObjectVector.push_back(command);
 }
 
-void commands::Play::operator()(const dpp::slashcommand_t& event) {
+void commands::Play::operator()(const dpp::slashcommand_t& event)
+{
     if (std::holds_alternative<std::monostate>(event.get_parameter("query")))
     {
         event.reply("노래를 재생하려면 검색어 또는 링크를 입력해 주십시오.");
@@ -28,25 +29,19 @@ void commands::Play::operator()(const dpp::slashcommand_t& event) {
     }
 
     /* Attempt to connect to a voice channel, returns false if we fail to connect. */
-    if (event.from->get_voice(event.command.guild_id) || !dpp::find_guild(event.command.guild_id)->connect_member_voice(event.command.get_issuing_user().id))
+    if (!event.from->get_voice(event.command.guild_id))
     {
-        return event.reply("노래를 재생할 음성 채팅방에 먼저 참가하고 신청해야 합니다!");
+        if (!dpp::find_guild(event.command.guild_id)->connect_member_voice(event.command.get_issuing_user().id))
+        {
+            return event.reply("노래를 재생할 음성 채팅방에 먼저 참가하고 신청해야 합니다!");
+        }
     }
 
     std::string Query = std::get<std::string>(event.get_parameter("query"));
 
     event.thinking();
 
-    auto findResult = queueMap->find(event.command.guild_id);
-    if (findResult == queueMap->end())
-    {
-        FMusicQueueID queueID;
-        queueID.guild_id = event.command.guild_id;
-        queueID.shard_id = event.from->shard_id;
-
-        (*queueMap)[queueID.guild_id] = std::make_shared<MusicQueue>(queueID);
-    }
-    std::shared_ptr<MusicQueue> queue = queueMap->find(event.command.guild_id)->second;
+    std::shared_ptr<MusicQueue> queue = getQueue(event);
 
     std::cout << "다운로드 시작" << "\n";
     std::system(("python3 yt-download.py \"" + Query + "\" & wait").c_str());
@@ -106,7 +101,8 @@ void commands::Play::operator()(const dpp::slashcommand_t& event) {
     RequestedMusic.pop();
     event.edit_original_response(msg);
 
-    while (!RequestedMusic.empty()) {
+    while (!RequestedMusic.empty())
+    {
         dpp::message followMsg(event.command.channel_id, "");
 
         followMsg.add_embed(RequestedMusic.front().embed);
@@ -119,10 +115,11 @@ void commands::Play::operator()(const dpp::slashcommand_t& event) {
     dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
 
     /* If the voice channel was invalid, or there is an issue with it, then tell the user. */
-    if (v && v->voiceclient && v->voiceclient->is_ready()) {
-        queue->play(botCluster);
+    if (v && v->voiceclient && v->voiceclient->is_ready())
+    {
+        queue->play();
     }
 
-    botCluster->on_voice_ready([this, queue](const dpp::voice_ready_t& Voice){ queue->play(botCluster); });
+    botCluster->on_voice_ready([this, queue](const dpp::voice_ready_t& Voice){ queue->play(); });
     return;
 }

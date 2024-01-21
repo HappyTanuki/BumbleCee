@@ -9,7 +9,7 @@ struct FMusicQueueID {
 
 class MusicQueue {
 public:
-    MusicQueue(FMusicQueueID id);
+    MusicQueue(FMusicQueueID id, std::shared_ptr<dpp::cluster> botCluster);
     void operator+=(FQueueElement operand);
     FQueueElement pop(int index);
     FQueueElement peek(int index);
@@ -19,9 +19,9 @@ public:
     std::list<struct FQueueElement>::iterator end();
     std::size_t size();
     FMusicQueueID getId();
-    void play(std::shared_ptr<dpp::cluster> botCluster);
+    void play();
 
-    void markerCallback(std::shared_ptr<dpp::cluster> botCluster);
+    void markerCallback();
 
     bool repeat;
 private:
@@ -29,5 +29,5 @@ private:
     std::mutex mutex;
     std::mutex playMutex;
     FMusicQueueID id;
-    bool queuePlaying;
+    std::shared_ptr<dpp::cluster> botCluster;
 };

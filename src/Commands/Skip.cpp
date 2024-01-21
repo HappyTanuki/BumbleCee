@@ -3,7 +3,7 @@
 #include <string>
 
 commands::Skip::Skip(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : ICommand(botCluster)
+    : VCCommand(botCluster)
 {
     this->queueMap = queueMap;
     dpp::slashcommand command = dpp::slashcommand("s", "현재곡 스킵", botCluster->me.id);
@@ -19,19 +19,9 @@ void commands::Skip::operator()(const dpp::slashcommand_t& event) {
     }
 
     v->voiceclient->stop_audio();
+    v->voiceclient->insert_marker("next marker");
 
-    auto findResult = queueMap->find(event.command.guild_id);
-    if (findResult == queueMap->end())
-    {
-        FMusicQueueID queueID;
-        queueID.guild_id = event.command.guild_id;
-        queueID.shard_id = event.from->shard_id;
-
-        (*queueMap)[queueID.guild_id] = std::make_shared<MusicQueue>(queueID);
-    }
-    std::shared_ptr<MusicQueue> queue = queueMap->find(event.command.guild_id)->second;
-    
-    queue->play(botCluster);
+    std::shared_ptr<MusicQueue> queue = getQueue(event);
 
     event.reply("스킵했습니다!");
 

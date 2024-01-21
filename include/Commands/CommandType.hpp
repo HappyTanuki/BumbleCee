@@ -16,3 +16,14 @@ protected:
     std::shared_ptr<dpp::cluster> botCluster;
 };
 }
+
+namespace commands {
+class VCCommand : public ICommand {
+public:
+    VCCommand(std::shared_ptr<dpp::cluster> botCluster) : ICommand(botCluster) {}
+
+    std::shared_ptr<MusicQueue> getQueue(const dpp::slashcommand_t& event);
+protected:
+    std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap;
+};
+}

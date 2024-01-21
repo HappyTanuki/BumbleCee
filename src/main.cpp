@@ -4,7 +4,8 @@
 
 using json = nlohmann::json;
 
-int main() {
+int main()
+{
     json configdocument;
     std::ifstream configfile("config.json");
     configfile >> configdocument;

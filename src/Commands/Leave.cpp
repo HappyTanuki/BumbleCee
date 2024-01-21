@@ -2,7 +2,7 @@
 #include <iostream>
 
 commands::Leave::Leave(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : ICommand(botCluster)
+    : VCCommand(botCluster)
 {
     this->queueMap = queueMap;
     dpp::slashcommand command = dpp::slashcommand("l", "음챗을 떠납니다", botCluster->me.id);
@@ -19,16 +19,7 @@ void commands::Leave::operator()(const dpp::slashcommand_t& event)
     }
     v->voiceclient->stop_audio();
 
-    auto findResult = queueMap->find(event.command.guild_id);
-    if (findResult == queueMap->end())
-    {
-        FMusicQueueID queueID;
-        queueID.guild_id = event.command.guild_id;
-        queueID.shard_id = event.from->shard_id;
-
-        (*queueMap)[queueID.guild_id] = std::make_shared<MusicQueue>(queueID);
-    }
-    std::shared_ptr<MusicQueue> queue = queueMap->find(event.command.guild_id)->second;
+    std::shared_ptr<MusicQueue> queue = getQueue(event);
 
     queue->clear();
     event.from->disconnect_voice(event.command.guild_id);
