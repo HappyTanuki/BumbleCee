@@ -136,6 +136,8 @@ void MusicQueue::markerCallback()
         return;
     }
 
+    //v->voiceclient->error(4014);
+
     /* load the audio file with oggz */
     OGGZ *track_og = oggz_open(("Music/" + music.fileName + ".ogg").c_str(), OGGZ_READ);
 

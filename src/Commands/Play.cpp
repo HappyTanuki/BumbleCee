@@ -64,9 +64,10 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
         time_t SongLength = int(document["duration"]);
         char SongLengthStr[10];
         tm t;
+        t.tm_mday = SongLength / 86400;
+        t.tm_hour = (SongLength % 86400)/3600;
+        t.tm_min = (SongLength % 3600)/60;
         t.tm_sec = SongLength%60;
-        t.tm_min = SongLength/60;
-        t.tm_hour = SongLength/360;
         strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
 
         FQueueElement Data = {
