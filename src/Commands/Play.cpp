@@ -7,14 +7,13 @@
 
 using json = nlohmann::json;
 
-commands::Play::Play(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : VCCommand(botCluster)
+commands::Play::Play(dpp::snowflake botID, BumbleCeepp* Bot)
+ : ICommand(botID, Bot)
 {
-    this->queueMap = queueMap;
-    dpp::slashcommand command = dpp::slashcommand("p", "노래 재생", botCluster->me.id);
+    dpp::slashcommand command = dpp::slashcommand("p", "노래 재생", botID);
 
     command.add_option(
-        dpp::command_option(dpp::co_string, "query", "링크 또는 검색어", botCluster->me.id)
+        dpp::command_option(dpp::co_string, "query", "링크 또는 검색어", botID)
     );
 
     commandObjectVector.push_back(command);
@@ -41,13 +40,9 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
 
     event.thinking();
 
-    std::shared_ptr<MusicQueue> queue = getQueue(event);
-
-    std::cout << "다운로드 시작" << "\n";
+    event.from->log(dpp::loglevel::ll_trace, "음악 다운로드 시작");
     std::system(("python3 yt-download.py \"" + Query + "\" & wait").c_str());
-    std::cout << "다운로드 완료" << "\n";
-
-    dpp::message msg(event.command.channel_id, "큐에 다음 곡을 추가했습니다:");
+    event.from->log(dpp::loglevel::ll_trace, "음악 다운로드 완료");
 
     std::ifstream infofile, idfile;
     json document;
@@ -56,48 +51,54 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
     idfile.open("Temp/CurMusic");
     while (std::getline(idfile, ID))
     {
-        std::cout << ID << "\n";
+        event.from->log(dpp::loglevel::ll_trace, "Red ID : " + ID);
         infofile.open("Music/" + ID + ".info.json");
         infofile >> document;
         infofile.close();
 
-        time_t SongLength = int(document["duration"]);
-        char SongLengthStr[10];
-        tm t;
-        t.tm_mday = SongLength / 86400;
-        t.tm_hour = (SongLength % 86400)/3600;
-        t.tm_min = (SongLength % 3600)/60;
-        t.tm_sec = SongLength%60;
-        strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
-
         FQueueElement Data = {
-            std::string(document["webpage_url"]),
-            std::string(document["title"]),
-            std::string(document["uploader"]),
-            std::string(document["id"]),
-            std::string(document["thumbnail"]),
-            to_string(document["duration"]),
-            dpp::embed()
-                .set_color(dpp::colors::sti_blue)
-                .set_title(Data.title)
-                .set_description(Data.description)
-                .set_url(Data.URL)
-                .set_image(Data.thumbnail)
-                .add_field(
-                    "길이",
-                    SongLengthStr,
-                    true
-                )
+            ID,
+            Bot->makeEmbed(
+            document["webpage_url"],
+            document["title"],
+            document["uploader"],
+            document["id"],
+            document["thumbnail"],
+            int(document["duration"]))
         };
-
-        (*queue) += Data;
 
         RequestedMusic.push(Data);
     }
     idfile.close();
     std::system("rm -f Temp/CurMusic");
-    std::cout << "queued\n";
 
+    dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
+
+    /* If the voice channel was invalid, or there is an issue with it, then tell the user. */
+    if (v && v->voiceclient && v->voiceclient->is_ready())
+    {
+        auto _copiedQueue = RequestedMusic;
+        while (!_copiedQueue.empty())
+        {
+            Bot->enqueueMusic(_copiedQueue.front(), v->voiceclient);
+            _copiedQueue.pop();
+        }
+    }
+    else
+    {
+        auto _copiedQueue = RequestedMusic;
+        event.from->creator->on_voice_ready([&](const dpp::voice_ready_t& Voice)
+        {
+            while (!_copiedQueue.empty())
+            {
+                auto item = _copiedQueue.front();
+                Bot->enqueueMusic(item, Voice.voice_client);
+                _copiedQueue.pop();
+            }
+        });
+    }
+
+    dpp::message msg(event.command.channel_id, "큐에 다음 곡을 추가했습니다:");
     msg.add_embed(RequestedMusic.front().embed);
     RequestedMusic.pop();
     event.edit_original_response(msg);
@@ -109,18 +110,8 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
         followMsg.add_embed(RequestedMusic.front().embed);
         RequestedMusic.pop();
 
-        botCluster->message_create(followMsg);
-    }
-    std::cout << "replied\n";
-
-    dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
-
-    /* If the voice channel was invalid, or there is an issue with it, then tell the user. */
-    if (v && v->voiceclient && v->voiceclient->is_ready())
-    {
-        queue->play();
+        event.from->creator->message_create(followMsg);
     }
 
-    botCluster->on_voice_ready([this, queue](const dpp::voice_ready_t& Voice){ queue->play(); });
     return;
 }

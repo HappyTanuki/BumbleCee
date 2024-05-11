@@ -4,9 +4,9 @@
 #include <memory>
 
 namespace commands {
-class Delete : public VCCommand {
+class Delete : public ICommand {
 public:
-    Delete(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap);
+    Delete(dpp::snowflake botID, BumbleCeepp* Bot);
 
     void operator()(const dpp::slashcommand_t& event);
 };

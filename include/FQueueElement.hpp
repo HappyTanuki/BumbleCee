@@ -3,11 +3,7 @@
 #include <dpp/dpp.h>
 
 struct FQueueElement {
-    std::string URL;
-    std::string title;
-    std::string description;
-    std::string fileName;
-    std::string thumbnail;
-    std::string duration;
+    std::string ID;
     dpp::embed embed;
+    bool skip = false;
 };

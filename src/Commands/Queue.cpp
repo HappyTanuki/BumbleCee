@@ -3,61 +3,10 @@
 #include <sstream>
 #include <cmath>
 
-namespace commands {
-dpp::embed makeEmbed(std::list<FQueueElement>::iterator& iter, std::list<FQueueElement>::iterator end, bool Repeat = false, int Index = 0)
+commands::Queue::Queue(dpp::snowflake botID, BumbleCeepp* Bot)
+ : ICommand(botID, Bot)
 {
-    dpp::embed embed = dpp::embed()
-        .set_color(dpp::colors::sti_blue);
-
-    if (iter == end) {
-        embed
-            .set_title("큐가 비었습니다!")
-            .set_timestamp(time(0));
-
-        if (Repeat)
-            embed.add_field(":repeat:","");
-
-        return embed;
-    }
-
-    std::ostringstream Number;
-    int Start = Index;
-
-    for (; (Index < Start + 5) && (iter != end); iter++, Index++) {
-        Number.clear();
-        Number.str("");
-        Number << Index;
-        embed.add_field(
-            Number.str(),
-            "",
-            true
-        )
-        .add_field(
-            iter->title,
-            iter->description,
-            true
-        )
-        .add_field(
-            "",
-            ""
-        );
-    }
-
-    if (iter == end) {
-        embed.set_timestamp(time(0));
-        if (Repeat)
-            embed.add_field(":repeat:","");
-    }
-
-    return embed;
-}
-}
-
-commands::Queue::Queue(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : VCCommand(botCluster)
-{
-    this->queueMap = queueMap;
-    dpp::slashcommand command = dpp::slashcommand("q", "노래 예약 큐 확인", botCluster->me.id);
+    dpp::slashcommand command = dpp::slashcommand("q", "노래 예약 큐 확인", botID);
 
     commandObjectVector.push_back(command);
 }
@@ -65,33 +14,65 @@ commands::Queue::Queue(std::shared_ptr<dpp::cluster> botCluster, std::unordered_
 void commands::Queue::operator()(const dpp::slashcommand_t& event) {
     dpp::message msg;
     msg.set_channel_id(event.command.channel_id);
-    std::shared_ptr<MusicQueue> queue = getQueue(event);
 
-    if (queue->size() < 1) {
-        auto iter = queue->begin();
-        msg.add_embed(makeEmbed(iter, queue->end(), queue->repeat));
+    auto vc = event.from->connecting_voice_channels.find(event.command.guild_id)->second->voiceclient;
+    std::vector<std::string> queuedSongs = vc->get_marker_metadata();
+
+    int remainingSongsCount = vc->get_tracks_remaining() - 1;
+    if (remainingSongsCount <= 0 && !vc->is_playing()) {
+        //재생 중인 노래가 없고 큐에 노래가 없는 상황
+        dpp::embed embed = dpp::embed()
+            .set_color(dpp::colors::sti_blue)
+            .set_title("큐가 비었습니다!")
+            .set_timestamp(time(0));
+
+        if (Bot->repeat)
+            embed.add_field(":repeat:","");
+
+        msg.add_embed(embed);
     }
     else {
         msg.set_content("지금 재생 중:");
-        msg.add_embed(queue->peek(0).embed);
+        dpp::embed curMusicEmbed = Bot->findEmbed(Bot->nowPlayingMusic);
+        msg.add_embed(curMusicEmbed);
     }
 
-    event.reply(msg, [this, queue, event](const dpp::confirmation_callback_t &_event) {
-        auto iter = queue->begin();
-        int queueSize = queue->size();
-        iter++;
-        for (int i = 0; i < ceil(queueSize / 5.0); i++) {
-            dpp::embed followEmbed = makeEmbed(iter, queue->end(), queue->repeat, i * 5 + 1);
+    event.reply(msg, [&](const dpp::confirmation_callback_t &_event) {
+        for (int i = 0; i < (queuedSongs.size()+4) / 5; i++)
+        {
+            dpp::embed followEmbed = dpp::embed();
+            int j;
+            for (j = i; j < i + 5 && j < queuedSongs.size(); j++)
+            {
+                dpp::embed originalEmbed = Bot->findEmbed(queuedSongs[j]);
+
+                followEmbed.add_field(
+                    std::to_string(j + 1),
+                    "",
+                    true
+                )
+                .add_field(
+                    originalEmbed.title,
+                    originalEmbed.description,
+                    true
+                )
+                .add_field(
+                    "",
+                    ""
+                );
+            }
+            if (j == queuedSongs.size())
+            {
+                followEmbed.set_timestamp(time(0));
+                if (Bot->repeat)
+                    followEmbed.add_field(":repeat:","");
+            }
 
             dpp::message followMsg;
             followMsg.channel_id = event.command.channel_id;
 
-            if (i == 0) {
-                followMsg.content = "현재 큐에 있는 항목:";
-            }
             followMsg.add_embed(followEmbed);
-
-            botCluster->message_create(followMsg);
+            event.from->creator->message_create(followMsg);
         }
     });
 }

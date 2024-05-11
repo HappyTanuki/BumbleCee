@@ -4,9 +4,9 @@
 #include <memory>
 
 namespace commands {
-class Queue : public VCCommand {
+class Queue : public ICommand {
 public:
-    Queue(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap);
+    Queue(dpp::snowflake botID, BumbleCeepp* Bot);
 
     void operator()(const dpp::slashcommand_t& event);
 };

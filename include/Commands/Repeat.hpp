@@ -4,9 +4,9 @@
 #include <memory>
 
 namespace commands {
-class Repeat : public VCCommand {
+class Repeat : public ICommand {
 public:
-    Repeat(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap);
+    Repeat(dpp::snowflake botID, BumbleCeepp* Bot);
 
     void operator()(const dpp::slashcommand_t& event);
 };

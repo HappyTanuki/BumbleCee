@@ -2,11 +2,10 @@
 #include <dpp/dpp.h>
 #include <string>
 
-commands::Skip::Skip(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap)
-    : VCCommand(botCluster)
+commands::Skip::Skip(dpp::snowflake botID, BumbleCeepp* Bot)
+ : ICommand(botID, Bot)
 {
-    this->queueMap = queueMap;
-    dpp::slashcommand command = dpp::slashcommand("s", "현재곡 스킵", botCluster->me.id);
+    dpp::slashcommand command = dpp::slashcommand("s", "현재곡 스킵", botID);
 
     commandObjectVector.push_back(command);
 }
@@ -17,11 +16,7 @@ void commands::Skip::operator()(const dpp::slashcommand_t& event) {
     if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
         return;
     }
-
-    v->voiceclient->stop_audio();
-    v->voiceclient->insert_marker("next marker");
-
-    std::shared_ptr<MusicQueue> queue = getQueue(event);
+    v->voiceclient->skip_to_next_marker();
 
     event.reply("스킵했습니다!");
 

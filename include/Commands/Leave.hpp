@@ -4,9 +4,9 @@
 #include <memory>
 
 namespace commands {
-class Leave : public VCCommand {
+class Leave : public ICommand {
 public:
-    Leave(std::shared_ptr<dpp::cluster> botCluster, std::unordered_map<dpp::snowflake, std::shared_ptr<MusicQueue>> *queueMap);
+    Leave(dpp::snowflake botID, BumbleCeepp* Bot);
 
     void operator()(const dpp::slashcommand_t& event);
 };
