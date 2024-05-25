@@ -1,4 +1,4 @@
-<a href="https://github.com/brainboxdotcc/DPP" alt="DPP"> <img src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?style=flat&logo=python&color=blue" /> </a>
+<a href="https://github.com/brainboxdotcc/DPP" alt="DPP"> <img src="DPP-markdown-logo.png" /> </a>
 # 이게 뭔가요?
 C++ Dpp 라이브러리를 이용해서 개발된 간단한 디스코드 음악봇입니다!
 
