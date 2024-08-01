@@ -5,7 +5,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/BumbleCee",
+            "program": "/home/happytanuki/BumbleCee/build/BumbleCee",
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

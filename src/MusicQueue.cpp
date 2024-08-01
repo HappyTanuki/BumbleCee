@@ -10,7 +10,7 @@ MusicQueue::MusicQueue(FMusicQueueID id, std::shared_ptr<dpp::cluster> botCluste
     repeat = false;
     this->botCluster = botCluster;
 
-    botCluster->on_voice_track_marker([this, botCluster](const dpp::voice_track_marker_t &marker)
+    botCluster->on_voice_track_marker([this](const dpp::voice_track_marker_t &marker)
     {
         std::cout << marker.track_meta << " Marker reached.\n";
 
@@ -18,6 +18,7 @@ MusicQueue::MusicQueue(FMusicQueueID id, std::shared_ptr<dpp::cluster> botCluste
         {
             std::cout << "Queue ended\n";
             playMutex.unlock();
+            this->botCluster->get_shard(this->getId().shard_id)->disconnect_voice(this->getId().guild_id);
             return;
         }
 
@@ -111,12 +112,20 @@ FMusicQueueID MusicQueue::getId()
 
 void MusicQueue::markerCallback()
 {
+    if (!dpp::find_guild(id.guild_id)->voice_members.size())
+    {
+        std::cout << "voicechat is empty.";
+        playMutex.unlock();
+        return;
+    }
+
     std::cout << "Music play started\n";
 
     dpp::discord_client* joinedShard = botCluster->get_shard(id.shard_id);
     if (!joinedShard)
     {
         std::cout << "No shard\n";
+        playMutex.unlock();
         return;
     }
 
@@ -133,6 +142,7 @@ void MusicQueue::markerCallback()
     if (!v || !v->voiceclient || !v->voiceclient->is_ready())
     {
         std::cout << "not in voicechat. quit musicplay";
+        playMutex.unlock();
         return;
     }
 
@@ -186,6 +196,7 @@ void MusicQueue::markerCallback()
     v->voiceclient->insert_marker(music.fileName + " end");
 
     std::cout << "audio sending complete\n";
+    playMutex.unlock();
 }
 
 void MusicQueue::play()
