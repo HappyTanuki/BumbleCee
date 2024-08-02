@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "/home/happytanuki/BumbleCee/build/BumbleCee",
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
