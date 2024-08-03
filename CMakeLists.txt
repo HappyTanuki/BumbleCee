@@ -20,7 +20,6 @@ set_target_properties(${BOT_NAME} PROPERTIES
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 find_package(DPP)
-find_package(mariadbcpp)
 if(APPLE)
 	if(CMAKE_APPLE_SILICON_PROCESSOR)
 		set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl")
@@ -36,8 +35,6 @@ target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
     /usr/include/opus
-    /usr/include/mariadb/conncpp
-    /usr/include/mariadb/conncpp/compat
 )
 
 target_link_libraries(${BOT_NAME}
