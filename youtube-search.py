@@ -16,6 +16,10 @@ def uri_validator(x):
 if uri_validator(sys.argv[1]) == True:
     result = urllib.parse.urlparse(sys.argv[1])
 
+    #youtu.be짧은 주소인 경우
+    if (result.netloc == 'youtu.be'):
+        print(result.path[1:13])
+
     #플레이리스트인 경우
     if result.path == '/playlist':
         import re, requests
@@ -24,8 +28,19 @@ if uri_validator(sys.argv[1]) == True:
 
         pattern = re.compile('"videoId":"(.{11})"')
 
-        list = set(pattern.findall(response.text))
-        for it in list:
+        IDlist = set(pattern.findall(response.text))
+
+        list_to_return = list()
+        list_to_return.append(IDlist[0])
+        list_to_return_count = 0
+        for it in range(1, len(list_to_return)):
+            if (list_to_return[list_to_return_count] == IDlist[it]):
+                continue
+            else:
+                list_to_return[list_to_return_count] = IDlist[it]
+                list_to_return_count += 1
+            
+        for it in list_to_return:
             print(it)
     #영상인 경우
     elif result.path == '/watch':

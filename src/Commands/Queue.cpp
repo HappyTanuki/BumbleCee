@@ -15,7 +15,12 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
     dpp::message msg;
     msg.set_channel_id(event.command.channel_id);
 
-    auto vc = event.from->connecting_voice_channels.find(event.command.guild_id)->second->voiceclient;
+    auto voiceconn = event.from->get_voice(event.command.guild_id);
+
+    if (!voiceconn || !voiceconn->voiceclient)
+        event.reply("음성 채팅방에 참가하지 않은 상태입니다.");
+        return;
+    auto vc = voiceconn->voiceclient;
     std::vector<std::string> queuedSongs = vc->get_marker_metadata();
 
     int remainingSongsCount = vc->get_tracks_remaining() - 1;

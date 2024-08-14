@@ -15,11 +15,11 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
     conn = sql::mariadb::get_driver_instance()->connect(DBURL, pro);
     
     commandsArray.push_back(std::make_shared<commands::Play>(botCluster->me.id, this));
-    // commandsArray.push_back(std::make_shared<commands::Repeat>(botCluster->me.id, this));
-    // commandsArray.push_back(std::make_shared<commands::Queue>(botCluster->me.id, this));
-    // commandsArray.push_back(std::make_shared<commands::Skip>(botCluster->me.id, this));
-    // commandsArray.push_back(std::make_shared<commands::Leave>(botCluster->me.id, this));
-    // commandsArray.push_back(std::make_shared<commands::Delete>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Repeat>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Queue>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Skip>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Leave>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Delete>(botCluster->me.id, this));
     
     botCluster->on_voice_track_marker([&](const dpp::voice_track_marker_t &marker)
     {
@@ -39,11 +39,10 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
             return;
         }
 
-
         marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
 
         int remainingSongsCount = marker.voice_client->get_tracks_remaining();
-        marker.voice_client->log(dpp::loglevel::ll_debug, "Marker count : " + remainingSongsCount);
+        marker.voice_client->log(dpp::loglevel::ll_debug, "Marker count : " + std::to_string(remainingSongsCount));
 
         if (remainingSongsCount <= 1 && !marker.voice_client->is_playing())
         {
@@ -51,9 +50,16 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
             std::cout << "Queue ended\n";
             if (!joinedShard)
                 return;
-            marker.voice_client->stop_audio();
-            joinedShard->disconnect_voice(marker.voice_client->server_id);
-            return;
+
+            if (repeat) {
+                std::shared_ptr<dpp::embed> embed = findEmbed(nowPlayingMusic);
+                enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
+            }
+            else {
+                marker.voice_client->stop_audio();
+                joinedShard->disconnect_voice(marker.voice_client->server_id);
+                return;
+            }
         }
 
         if (repeat) {
@@ -61,21 +67,19 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
             if (nowPlayingMusic == "") {
                 nowPlayingMusic = marker.track_meta;
             }
-            embed = findEmbed(nowPlayingMusic);
-            nowPlayingMusic = marker.track_meta;
-            
+            else {
+                embed = findEmbed(nowPlayingMusic);
+                nowPlayingMusic = marker.track_meta;
 
-            if (!embed) {
-                botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
-                return;
+                if (!embed) {
+                    botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
+                    return;
+                }
+
+                enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
             }
-
-            enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
         }
     });
-
-    // cluster->on_voice_ready([&](const dpp::voice_ready_t& Voice){ queue->play(); });
-    
 }
 
 BumbleCeepp::~BumbleCeepp()

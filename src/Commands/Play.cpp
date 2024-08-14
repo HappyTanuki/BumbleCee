@@ -140,8 +140,8 @@ void commands::Play::on_DLCompleted(std::string musicID, dpp::embed embed, const
     auto voiceconn = event.from->get_voice(event.command.guild_id);
 
     if (!voiceconn || !voiceconn->voiceclient || !voiceconn->voiceclient->is_ready()) {
-        event.from->creator->on_voice_ready([this, musicID, embed, voiceconn](const dpp::voice_ready_t& Voice){
-            this->Bot->enqueueMusic({musicID, embed}, voiceconn->voiceclient);
+        event.from->creator->on_voice_ready([this, musicID, embed](const dpp::voice_ready_t& Voice){
+            this->Bot->enqueueMusic({musicID, embed}, Voice.voice_client);
         });
     }
     else {
