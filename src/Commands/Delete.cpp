@@ -37,7 +37,7 @@ void commands::Delete::operator()(const dpp::slashcommand_t& event)
         return;
     }
 
-    dpp::embed embed = Bot->findEmbed(queuedSongs[index - 1])
+    dpp::embed embed = (*Bot->findEmbed(queuedSongs[index - 1]))
         .set_timestamp(time(0));
 
     dpp::message msg(event.command.channel_id, "다음 항목을 큐에서 삭제했습니다!:");

@@ -9,5 +9,6 @@ public:
     Play(dpp::snowflake botID, BumbleCeepp* Bot);
 
     void operator()(const dpp::slashcommand_t& event);
+    void on_DLCompleted(std::string musicID, dpp::embed embed, const dpp::slashcommand_t& event);
 };
 }

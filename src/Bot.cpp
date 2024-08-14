@@ -1,16 +1,8 @@
 #include <Bot.hpp>
 #include <Commands/CommandType.hpp>
 
-IBot::IBot(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount)
+IBot::IBot(std::string token, int clusterCount)
 {
-    this->DBURL = std::make_shared<sql::SQLString>(DBURL);
-    sql::Properties pro({
-        {"user", DBID},
-        {"password", DBPassword}
-    });
-    this->DBProperties = std::make_shared<sql::Properties>(pro);
-    DBDriver = sql::mariadb::get_driver_instance();
-
     botCluster = std::make_shared<dpp::cluster>(token, dpp::i_default_intents, clusterCount);
 
     botCluster->on_log(logger());

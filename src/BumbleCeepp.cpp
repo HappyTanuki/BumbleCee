@@ -5,15 +5,21 @@
 #include <oggz/oggz.h>
 
 BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount)
-    : IBot(token, DBURL, DBID, DBPassword, clusterCount)
+    : IBot(token, clusterCount)
 {
+    sql::Properties pro({
+        {"user", DBID},
+        {"password", DBPassword}
+    });
+
+    conn = sql::mariadb::get_driver_instance()->connect(DBURL, pro);
     
     commandsArray.push_back(std::make_shared<commands::Play>(botCluster->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Repeat>(botCluster->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Queue>(botCluster->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Skip>(botCluster->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Leave>(botCluster->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Delete>(botCluster->me.id, this));
+    // commandsArray.push_back(std::make_shared<commands::Repeat>(botCluster->me.id, this));
+    // commandsArray.push_back(std::make_shared<commands::Queue>(botCluster->me.id, this));
+    // commandsArray.push_back(std::make_shared<commands::Skip>(botCluster->me.id, this));
+    // commandsArray.push_back(std::make_shared<commands::Leave>(botCluster->me.id, this));
+    // commandsArray.push_back(std::make_shared<commands::Delete>(botCluster->me.id, this));
     
     botCluster->on_voice_track_marker([&](const dpp::voice_track_marker_t &marker)
     {
@@ -37,7 +43,7 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
         marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
 
         int remainingSongsCount = marker.voice_client->get_tracks_remaining();
-        marker.voice_client->log(dpp::loglevel::ll_trace, "Marker count : " + remainingSongsCount);
+        marker.voice_client->log(dpp::loglevel::ll_debug, "Marker count : " + remainingSongsCount);
 
         if (remainingSongsCount <= 1 && !marker.voice_client->is_playing())
         {
@@ -50,12 +56,31 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
             return;
         }
 
-        if (repeat)
-            enqueueMusic({nowPlayingMusic, findEmbed(nowPlayingMusic)}, marker.voice_client);
+        if (repeat) {
+            std::shared_ptr<dpp::embed> embed;
+            if (nowPlayingMusic == "") {
+                nowPlayingMusic = marker.track_meta;
+            }
+            embed = findEmbed(nowPlayingMusic);
+            nowPlayingMusic = marker.track_meta;
+            
+
+            if (!embed) {
+                botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
+                return;
+            }
+
+            enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
+        }
     });
 
     // cluster->on_voice_ready([&](const dpp::voice_ready_t& Voice){ queue->play(); });
     
+}
+
+BumbleCeepp::~BumbleCeepp()
+{
+    conn->close();
 }
 
 void BumbleCeepp::enqueueMusic(FQueueElement item, dpp::discord_voice_client* vc)
@@ -111,31 +136,59 @@ void BumbleCeepp::enqueueMusic(FQueueElement item, dpp::discord_voice_client* vc
     vc->log(dpp::loglevel::ll_debug, "Enqueued " + item.ID + "on channel id " + vc->channel_id.str() + ".");
 }
 
-dpp::embed BumbleCeepp::findEmbed(std::string musicID)
+std::shared_ptr<dpp::embed> BumbleCeepp::findEmbed(std::string musicID)
 {
-    auto iter = musicEmbedMap.find(musicID);
-    if (iter != musicEmbedMap.end())
-        return iter->second;
-    
-    std::unique_ptr<sql::Connection> conn(DBDriver->connect(*this->DBURL, *DBProperties));
-    std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement("SELECT embed FROM songs_info WHERE ID = ?"));
-    stmnt->setString(1, musicID);
-    std::unique_ptr<sql::ResultSet> res(stmnt->executeQuery());
-    
-    dpp::embed returnValue = makeEmbed(
-        res->getString("webpage_url").c_str(),
-        res->getString("title").c_str(),
-        res->getString("uploader").c_str(),
-        musicID,
-        res->getString("thumbnail").c_str(),
-        res->getInt("duration"));
+    sql::ResultSet* res;
+    std::shared_ptr<dpp::embed> returnValue;
+    try {
+        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement("SELECT * FROM songs_info WHERE ID = ?"));
+        stmnt->setString(1, musicID);
+        res = stmnt->executeQuery();
 
-    musicEmbedMap[musicID] = returnValue;
+        if (!res->next()) {
+            return nullptr;
+        }
+
+        returnValue = makeEmbed(
+            res->getString("webpage_url").c_str(),
+            res->getString("title").c_str(),
+            res->getString("uploader").c_str(),
+            musicID,
+            res->getString("thumbnail").c_str(),
+            res->getInt("duration"));
+    }
+    catch(sql::SQLException& e){
+        botCluster->log(dpp::loglevel::ll_error, std::string("SQLError: ") + e.what());
+        return nullptr;
+    }
 
     return returnValue;
 }
 
-dpp::embed BumbleCeepp::makeEmbed(std::string webpage_url, std::string title, std::string uploader, std::string id, std::string thumbnail, time_t duration)
+bool BumbleCeepp::insertDB(
+    std::string webpage_url, std::string title, std::string uploader, std::string id, std::string thumbnail, time_t duration)
+{
+    try {
+        std::unique_ptr<sql::PreparedStatement> stmnt(
+            conn->prepareStatement("REPLACE INTO songs_info (ID, webpage_url, title, uploader, thumbnail, duration) VALUE (?, ?, ?, ?, ?, ?)"));
+        stmnt->setString(1, id);
+        stmnt->setString(2, webpage_url);
+        stmnt->setString(3, title);
+        stmnt->setString(4, uploader);
+        stmnt->setString(5, thumbnail);
+        stmnt->setInt(6, duration);
+        stmnt->executeQuery();
+
+        return true;
+    }
+    catch(sql::SQLException& e){
+        botCluster->log(dpp::loglevel::ll_debug, std::string("SQLError: ") + e.what());
+        return false;
+    }
+}
+
+std::shared_ptr<dpp::embed> BumbleCeepp::makeEmbed(
+    std::string webpage_url, std::string title, std::string uploader, std::string id, std::string thumbnail, time_t duration)
 {
     char SongLengthStr[10];
     tm t;
@@ -157,16 +210,7 @@ dpp::embed BumbleCeepp::makeEmbed(std::string webpage_url, std::string title, st
             true
         );
 
-    std::unique_ptr<sql::Connection> conn(DBDriver->connect(*this->DBURL, *DBProperties));
-    std::unique_ptr<sql::PreparedStatement> stmnt(
-        conn->prepareStatement("REPLACE INTO songs_info (ID, webpage_url, title, uploader, thumbnail, duration) VALUE (?, ?, ?, ?, ?, ?)"));
-    stmnt->setString(1, id);
-    stmnt->setString(2, webpage_url);
-    stmnt->setString(3, title);
-    stmnt->setString(4, uploader);
-    stmnt->setString(5, thumbnail);
-    stmnt->setInt(6, duration);
-    stmnt->executeQuery();
+    insertDB(webpage_url, title, uploader, id, thumbnail, duration);
 
-    return returnValue;
+    return std::make_shared<dpp::embed>(returnValue);
 }

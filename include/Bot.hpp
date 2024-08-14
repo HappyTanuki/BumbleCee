@@ -6,7 +6,7 @@
 
 class IBot {
 public:
-    IBot(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount = 0);
+    IBot(std::string token, int clusterCount = 0);
     virtual void start();
     virtual void onCommand(const dpp::slashcommand_t &event);
     virtual void onReady(const dpp::ready_t &event);
@@ -24,9 +24,4 @@ public:
     };
 
     dpp::loglevel logLevel = dpp::ll_debug;
-
-protected:
-    sql::Driver* DBDriver;
-    std::shared_ptr<sql::SQLString> DBURL;
-    std::shared_ptr<sql::Properties> DBProperties;
 };

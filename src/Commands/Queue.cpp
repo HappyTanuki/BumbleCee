@@ -33,7 +33,7 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
     }
     else {
         msg.set_content("지금 재생 중:");
-        dpp::embed curMusicEmbed = Bot->findEmbed(Bot->nowPlayingMusic);
+        dpp::embed curMusicEmbed = *Bot->findEmbed(Bot->nowPlayingMusic);
         msg.add_embed(curMusicEmbed);
     }
 
@@ -44,7 +44,7 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
             int j;
             for (j = i; j < i + 5 && j < queuedSongs.size(); j++)
             {
-                dpp::embed originalEmbed = Bot->findEmbed(queuedSongs[j]);
+                dpp::embed originalEmbed = *Bot->findEmbed(queuedSongs[j]);
 
                 followEmbed.add_field(
                     std::to_string(j + 1),

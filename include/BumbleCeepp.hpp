@@ -9,10 +9,18 @@
 class BumbleCeepp : public IBot {
 public:
     BumbleCeepp(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount = 0);
+    ~BumbleCeepp();
 
     void enqueueMusic(FQueueElement item, dpp::discord_voice_client* vc);
-    dpp::embed findEmbed(std::string musicID);
-    dpp::embed makeEmbed(
+    std::shared_ptr<dpp::embed> findEmbed(std::string musicID);
+    bool insertDB(
+        std::string webpage_url,
+        std::string title,
+        std::string uploader,
+        std::string id,
+        std::string thumbnail,
+        time_t duration);
+    std::shared_ptr<dpp::embed> makeEmbed(
         std::string webpage_url,
         std::string title,
         std::string uploader,
@@ -26,5 +34,5 @@ public:
 private:
     //<guild_id, queueMutex> 쌍임.
     std::unordered_map<dpp::snowflake, std::mutex> enqueuingMutexMap;
-    std::unordered_map<std::string, dpp::embed> musicEmbedMap;
+    sql::Connection* conn;
 };

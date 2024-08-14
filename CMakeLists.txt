@@ -37,11 +37,13 @@ endif()
 target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
+    /usr/include/opus
 )
 
 target_link_libraries(${BOT_NAME}
     dl
     dpp
+    opus
     oggz
     mariadbcpp
     ${CMAKE_THREAD_LIBS_INIT}
