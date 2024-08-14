@@ -6,13 +6,24 @@
 
 class IBot {
 public:
-    IBot(std::string token, int clusterCount, std::string DBURL, std::string DBID, std::string DBPassword);
+    IBot(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount = 0);
     virtual void start();
     virtual void onCommand(const dpp::slashcommand_t &event);
     virtual void onReady(const dpp::ready_t &event);
 
-    std::vector<std::shared_ptr<dpp::cluster>> botClusters;
+    std::shared_ptr<dpp::cluster> botCluster;
     std::vector<std::shared_ptr<commands::ICommand>> commandsArray;
+
+    std::function<void(const dpp::log_t&)> logger() {
+        return [&](const dpp::log_t& event){
+            if (event.severity >= dpp::ll_error)
+                std::cerr << "[" << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(event.severity) << ": " << event.message << std::endl;
+            else if (event.severity - logLevel >= 0)
+                std::clog << "[" << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(event.severity) << ": " << event.message << std::endl;
+        };
+    };
+
+    dpp::loglevel logLevel = dpp::ll_debug;
 
 protected:
     sql::Driver* DBDriver;

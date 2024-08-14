@@ -38,11 +38,22 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
 
     std::string Query = std::get<std::string>(event.get_parameter("query"));
 
-    event.thinking();
+    dpp::detail::co_await_resolve(event.co_thinking());
 
-    event.from->log(dpp::loglevel::ll_trace, "음악 다운로드 시작");
+    event.from->log(dpp::loglevel::ll_debug, "음악 ID 쿼리");
+    dpp::utility::exec("python3 youtube-search.py", {Query}, [&](const std::string& output) -> void
+    {
+        if (!output.length())
+        {
+            event.from->log(dpp::loglevel::ll_debug, "검색 결과 없음");
+            event.edit_response("검색 결과가 없습니다.");
+        }
+    });
+    std::system(("python3 youtube-search.py \"" + Query + "\" & wait").c_str());
+
+    event.from->log(dpp::loglevel::ll_debug, "음악 다운로드 시작");
     std::system(("python3 yt-download.py \"" + Query + "\" & wait").c_str());
-    event.from->log(dpp::loglevel::ll_trace, "음악 다운로드 완료");
+    event.from->log(dpp::loglevel::ll_debug, "음악 다운로드 완료");
 
     std::ifstream infofile, idfile;
     json document;

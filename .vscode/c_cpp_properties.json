@@ -3,14 +3,18 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/include/opus"
+                "${workspaceFolder}/**"
             ],
-            "defines": [],
+            "defines": [
+                "DDPP_CORO=on"
+            ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
-            "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-DDPP_CORO"
+            ]
         }
     ],
     "version": 4

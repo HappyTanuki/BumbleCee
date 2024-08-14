@@ -1,7 +1,7 @@
 #include <Bot.hpp>
 #include <Commands/CommandType.hpp>
 
-IBot::IBot(std::string token, int clusterCount, std::string DBURL, std::string DBID, std::string DBPassword)
+IBot::IBot(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount)
 {
     this->DBURL = std::make_shared<sql::SQLString>(DBURL);
     sql::Properties pro({
@@ -11,15 +11,11 @@ IBot::IBot(std::string token, int clusterCount, std::string DBURL, std::string D
     this->DBProperties = std::make_shared<sql::Properties>(pro);
     DBDriver = sql::mariadb::get_driver_instance();
 
-    for (int i = 0; i<clusterCount; i++)
-    {
-        std::shared_ptr<dpp::cluster> cluster = std::make_shared<dpp::cluster>(token, dpp::i_default_intents);
+    botCluster = std::make_shared<dpp::cluster>(token, dpp::i_default_intents, clusterCount);
 
-        cluster->on_log(dpp::utility::cout_logger());
-        cluster->on_slashcommand([&](const dpp::slashcommand_t& event){onCommand(event);});
-        cluster->on_ready([&](const dpp::ready_t &event){onReady(event);});
-        botClusters.push_back(cluster);
-    }
+    botCluster->on_log(logger());
+    botCluster->on_slashcommand([&](const dpp::slashcommand_t& event){onCommand(event);});
+    botCluster->on_ready([&](const dpp::ready_t &event){onReady(event);});
 }
 
 void IBot::onCommand(const dpp::slashcommand_t &event)
@@ -40,23 +36,12 @@ void IBot::onReady(const dpp::ready_t &event)
 
     for (auto command : commandsArray)
         for (auto alias : command->commandObjectVector)
-            for (auto cluster : botClusters)
-                cluster->global_command_create(alias);
+            botCluster->global_command_create(alias);
     
-    botClusters[0]->log(dpp::loglevel::ll_info, "Command added to all clusters.");
+    botCluster->log(dpp::loglevel::ll_info, "Command added to all clusters.");
 }
 
 void IBot::start()
 {
-    if (botClusters.size() == 1)
-    {
-        botClusters[0]->start(dpp::st_wait);
-        return;
-    }
-
-    for (int i = 0; i < botClusters.size() - 1; i++)
-    {
-        botClusters[i]->start(dpp::st_return);
-    }
-    botClusters[botClusters.size() - 1]->start(dpp::st_wait);
+    botCluster->start(dpp::st_wait);
 }

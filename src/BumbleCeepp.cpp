@@ -4,60 +4,57 @@
 #include <Commands/Commands.hpp>
 #include <oggz/oggz.h>
 
-BumbleCeepp::BumbleCeepp(std::string token, int clusterCount, std::string DBURL, std::string DBID, std::string DBPassword)
-    : IBot(token, clusterCount, DBURL, DBID, DBPassword)
+BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount)
+    : IBot(token, DBURL, DBID, DBPassword, clusterCount)
 {
     
-    commandsArray.push_back(std::make_shared<commands::Play>(botClusters[0]->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Repeat>(botClusters[0]->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Queue>(botClusters[0]->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Skip>(botClusters[0]->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Leave>(botClusters[0]->me.id, this));
-    commandsArray.push_back(std::make_shared<commands::Delete>(botClusters[0]->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Play>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Repeat>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Queue>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Skip>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Leave>(botCluster->me.id, this));
+    commandsArray.push_back(std::make_shared<commands::Delete>(botCluster->me.id, this));
     
-    for (auto cluster : botClusters)
+    botCluster->on_voice_track_marker([&](const dpp::voice_track_marker_t &marker)
     {
-        cluster->on_voice_track_marker([&](const dpp::voice_track_marker_t &marker)
+        auto voice_members = dpp::find_guild(marker.voice_client->server_id)->voice_members;
+        dpp::snowflake connectedChannel = marker.voice_client->channel_id;
+        int memberCount = 0;
+        for (auto member : voice_members)
+            if ( member.second.channel_id == connectedChannel )
+                memberCount++;
+
+        if (!memberCount)
         {
-            auto voice_members = dpp::find_guild(marker.voice_client->server_id)->voice_members;
-            dpp::snowflake connectedChannel = marker.voice_client->channel_id;
-            int memberCount = 0;
-            for (auto member : voice_members)
-                if ( member.second.channel_id == connectedChannel )
-                    memberCount++;
+            auto joinedShard = marker.from;
+            std::cout << "voicechat is empty.";
+            marker.voice_client->stop_audio();
+            joinedShard->disconnect_voice(marker.voice_client->server_id);
+            return;
+        }
 
-            if (!memberCount)
-            {
-                auto joinedShard = marker.from;
-                std::cout << "voicechat is empty.";
-                marker.voice_client->stop_audio();
-                joinedShard->disconnect_voice(marker.voice_client->server_id);
+
+        marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
+
+        int remainingSongsCount = marker.voice_client->get_tracks_remaining();
+        marker.voice_client->log(dpp::loglevel::ll_trace, "Marker count : " + remainingSongsCount);
+
+        if (remainingSongsCount <= 1 && !marker.voice_client->is_playing())
+        {
+            auto joinedShard = marker.from;
+            std::cout << "Queue ended\n";
+            if (!joinedShard)
                 return;
-            }
+            marker.voice_client->stop_audio();
+            joinedShard->disconnect_voice(marker.voice_client->server_id);
+            return;
+        }
 
+        if (repeat)
+            enqueueMusic({nowPlayingMusic, findEmbed(nowPlayingMusic)}, marker.voice_client);
+    });
 
-            marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
-
-            int remainingSongsCount = marker.voice_client->get_tracks_remaining();
-            marker.voice_client->log(dpp::loglevel::ll_trace, "Marker count : " + remainingSongsCount);
-
-            if (remainingSongsCount <= 1 && !marker.voice_client->is_playing())
-            {
-                auto joinedShard = marker.from;
-                std::cout << "Queue ended\n";
-                if (!joinedShard)
-                    return;
-                marker.voice_client->stop_audio();
-                joinedShard->disconnect_voice(marker.voice_client->server_id);
-                return;
-            }
-
-            if (repeat)
-                enqueueMusic({nowPlayingMusic, findEmbed(nowPlayingMusic)}, marker.voice_client);
-        });
-
-        // cluster->on_voice_ready([&](const dpp::voice_ready_t& Voice){ queue->play(); });
-    }
+    // cluster->on_voice_ready([&](const dpp::voice_ready_t& Voice){ queue->play(); });
     
 }
 

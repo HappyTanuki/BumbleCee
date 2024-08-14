@@ -8,7 +8,7 @@
 
 class BumbleCeepp : public IBot {
 public:
-    BumbleCeepp(std::string token, int clusterCount, std::string DBURL, std::string DBID, std::string DBPassword);
+    BumbleCeepp(std::string token, std::string DBURL, std::string DBID, std::string DBPassword, int clusterCount = 0);
 
     void enqueueMusic(FQueueElement item, dpp::discord_voice_client* vc);
     dpp::embed findEmbed(std::string musicID);

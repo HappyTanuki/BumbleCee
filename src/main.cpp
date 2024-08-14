@@ -10,12 +10,12 @@ int main()
     std::ifstream configfile("config.json");
     configfile >> configdocument;
 
+    // setvbuf(stdout, NULL, _IONBF, 0);
+
     std::shared_ptr<BumbleCeepp> bumbleBee = std::make_shared<BumbleCeepp>(
-        configdocument["token"], 1, configdocument["dbURL"], configdocument["user"], configdocument["password"]);
+        configdocument["token"], configdocument["dbURL"], configdocument["user"], configdocument["password"]);
 
     bumbleBee->start();
-
     
-
     return 0;
 }

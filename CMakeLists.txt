@@ -13,9 +13,12 @@ string(ASCII 27 Esc)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(${BOT_NAME} PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
+
+target_compile_definitions(${BOT_NAME} PUBLIC DPP_CORO)
+target_compile_features(${BOT_NAME} PUBLIC cxx_std_20)
 
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
@@ -34,15 +37,11 @@ endif()
 target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
-    /usr/include/opus
 )
 
 target_link_libraries(${BOT_NAME}
     dl
     dpp
-    opus
-    opusfile
-    ogg
     oggz
     mariadbcpp
     ${CMAKE_THREAD_LIBS_INIT}
@@ -77,6 +76,3 @@ else()
 
     target_link_libraries(${BOT_NAME} dpp)
 endif()
-
-set(CMAKE_CXX_FLAGS "-g")
-set(VMAKE_CXX_FLAGS "-lmariadbcpp")
