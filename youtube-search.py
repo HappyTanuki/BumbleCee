@@ -30,17 +30,17 @@ if uri_validator(sys.argv[1]) == True:
 
         IDlist = set(pattern.findall(response.text))
 
-        list_to_return = list()
-        list_to_return.append(IDlist[0])
-        list_to_return_count = 0
-        for it in range(1, len(list_to_return)):
-            if (list_to_return[list_to_return_count] == IDlist[it]):
-                continue
-            else:
-                list_to_return[list_to_return_count] = IDlist[it]
-                list_to_return_count += 1
+        # list_to_return = list()
+        # list_to_return.append(IDlist[0])
+        # list_to_return_count = 0
+        # for it in range(0, len(list_to_return)):
+        #     if (list_to_return[list_to_return_count] == IDlist[it]):
+        #         continue
+        #     else:
+        #         list_to_return[list_to_return_count] = IDlist[it]
+        #         list_to_return_count += 1
             
-        for it in list_to_return:
+        for it in IDlist:
             print(it)
     #영상인 경우
     elif result.path == '/watch':

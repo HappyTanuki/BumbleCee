@@ -17,11 +17,11 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
 
     auto voiceconn = event.from->get_voice(event.command.guild_id);
 
-    if (!voiceconn || !voiceconn->voiceclient)
+    if (!voiceconn || !voiceconn->voiceclient) {
         event.reply("음성 채팅방에 참가하지 않은 상태입니다.");
         return;
+    }
     auto vc = voiceconn->voiceclient;
-    std::vector<std::string> queuedSongs = vc->get_marker_metadata();
 
     int remainingSongsCount = vc->get_tracks_remaining() - 1;
     if (remainingSongsCount <= 0 && !vc->is_playing()) {
@@ -42,12 +42,18 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
         msg.add_embed(curMusicEmbed);
     }
 
-    event.reply(msg, [&](const dpp::confirmation_callback_t &_event) {
+    event.reply(msg, [&](const dpp::confirmation_callback_t& _event) {
+        auto shard_id = dpp::find_guild(event.command.guild_id)->shard_id;
+        dpp::cluster* cluster = const_cast<dpp::cluster *>(_event.bot);
+        auto shard = cluster->get_shard(shard_id);
+        auto iter = shard->connecting_voice_channels.find(event.command.guild_id);
+        std::vector<std::string> queuedSongs = iter->second->voiceclient->get_marker_metadata();
+
+        int j;
         for (int i = 0; i < (queuedSongs.size()+4) / 5; i++)
         {
             dpp::embed followEmbed = dpp::embed();
-            int j;
-            for (j = i; j < i + 5 && j < queuedSongs.size(); j++)
+            for (j = i * 5; j < i * 5 + 5 && j < queuedSongs.size(); j++)
             {
                 dpp::embed originalEmbed = *Bot->findEmbed(queuedSongs[j]);
 
@@ -66,7 +72,8 @@ void commands::Queue::operator()(const dpp::slashcommand_t& event) {
                     ""
                 );
             }
-            if (j == queuedSongs.size())
+
+            if (j >= queuedSongs.size())
             {
                 followEmbed.set_timestamp(time(0));
                 if (Bot->repeat)

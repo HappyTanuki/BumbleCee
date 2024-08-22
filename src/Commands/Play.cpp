@@ -68,8 +68,7 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
         event.edit_response("검색 결과가 없습니다.");
         return;
     }
-    event.from->log(dpp::loglevel::ll_debug, "musicIDs: " + musicIDs);
-
+    
     std::stringstream sstream(musicIDs);
     std::string musicID;
     while (getline(sstream, musicID, '\n')) {

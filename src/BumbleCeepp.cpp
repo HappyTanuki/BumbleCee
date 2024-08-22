@@ -23,6 +23,16 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
     
     botCluster->on_voice_track_marker([&](const dpp::voice_track_marker_t &marker)
     {
+        marker.voice_client->log(dpp::loglevel::ll_debug, "nowPlaying " + nowPlayingMusic);
+        std::shared_ptr<dpp::embed> embed;
+        if (nowPlayingMusic == "") {
+            nowPlayingMusic = marker.track_meta;
+            embed = findEmbed(nowPlayingMusic);
+        }
+        else {
+            embed = findEmbed(nowPlayingMusic);
+            nowPlayingMusic = marker.track_meta;
+        }
         auto voice_members = dpp::find_guild(marker.voice_client->server_id)->voice_members;
         dpp::snowflake connectedChannel = marker.voice_client->channel_id;
         int memberCount = 0;
@@ -63,21 +73,12 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
         }
 
         if (repeat) {
-            std::shared_ptr<dpp::embed> embed;
-            if (nowPlayingMusic == "") {
-                nowPlayingMusic = marker.track_meta;
+            if (!embed) {
+                botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
+                return;
             }
-            else {
-                embed = findEmbed(nowPlayingMusic);
-                nowPlayingMusic = marker.track_meta;
 
-                if (!embed) {
-                    botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
-                    return;
-                }
-
-                enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
-            }
+            enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
         }
     });
 }
