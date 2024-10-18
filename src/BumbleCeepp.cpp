@@ -49,6 +49,12 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
             return;
         }
 
+<<<<<<< HEAD
+            if (!memberCount)
+            {
+                auto joinedShard = marker.from;
+                marker.voice_client->log(dpp::loglevel::ll_info, "voicechat is empty.");
+=======
         marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
 
         int remainingSongsCount = marker.voice_client->get_tracks_remaining();
@@ -66,15 +72,33 @@ BumbleCeepp::BumbleCeepp(std::string token, std::string DBURL, std::string DBID,
                 enqueueMusic({nowPlayingMusic, *embed}, marker.voice_client);
             }
             else {
+>>>>>>> 68b6105ac3ddf1c27f40e0e552780171352e734d
                 marker.voice_client->stop_audio();
                 joinedShard->disconnect_voice(marker.voice_client->server_id);
                 return;
             }
         }
 
+<<<<<<< HEAD
+
+            marker.voice_client->log(dpp::loglevel::ll_debug, "Playing " + marker.track_meta + "on channel id " + marker.voice_client->channel_id.str() + ".");
+
+            int remainingSongsCount = marker.voice_client->get_tracks_remaining();
+            marker.voice_client->log(dpp::loglevel::ll_info, "Marker count : " + remainingSongsCount);
+
+            if (remainingSongsCount <= 1 && !marker.voice_client->is_playing())
+            {
+                auto joinedShard = marker.from;
+                marker.voice_client->log(dpp::loglevel::ll_info, "Queue ended");
+                if (!joinedShard)
+                    return;
+                marker.voice_client->stop_audio();
+                joinedShard->disconnect_voice(marker.voice_client->server_id);
+=======
         if (repeat) {
             if (!embed) {
                 botCluster->log(dpp::loglevel::ll_error, std::string("알 수 없는 오류 발생!"));
+>>>>>>> 68b6105ac3ddf1c27f40e0e552780171352e734d
                 return;
             }
 

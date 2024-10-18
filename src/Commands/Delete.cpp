@@ -28,7 +28,7 @@ void commands::Delete::operator()(const dpp::slashcommand_t& event)
     int remainingSongsCount = vc->get_tracks_remaining() - 1;
     std::vector<std::string> queuedSongs = vc->get_marker_metadata();
 
-    vc->log(dpp::loglevel::ll_trace, "Queue size : " + remainingSongsCount);
+    vc->log(dpp::loglevel::ll_info, "Queue size : " + remainingSongsCount);
 
     if (index < 0 || remainingSongsCount+1 < index || (!vc->is_playing() && index == 0)) {
         std::cout << "invalid index : " << index << ", " + Pos + "\n";

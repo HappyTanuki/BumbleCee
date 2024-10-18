@@ -4,6 +4,7 @@
 #include <string>
 #include <filesystem>
 #include <ctime>
+#include <thread>
 
 using json = nlohmann::json;
 
@@ -34,6 +35,14 @@ commands::Play::Play(dpp::snowflake botID, BumbleCeepp* Bot)
     commandObjectVector.push_back(command);
 }
 
+<<<<<<< HEAD
+static void _Internal_Enqueue_Func(const dpp::slashcommand_t& event, BumbleCeepp* Bot){
+    std::string Query = std::get<std::string>(event.get_parameter("query"));
+
+    event.from->log(dpp::loglevel::ll_info, "음악 다운로드 시작");
+    std::system(("python3 yt-download.py \"" + Query + "\" & wait").c_str());
+    event.from->log(dpp::loglevel::ll_info, "음악 다운로드 완료");
+=======
 void commands::Play::operator()(const dpp::slashcommand_t& event)
 {
     if (std::holds_alternative<std::monostate>(event.get_parameter("query")))
@@ -59,14 +68,35 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
     event.thinking();
 
     event.from->log(dpp::loglevel::ll_debug, "음악 ID 쿼리: " + Query);
+>>>>>>> 68b6105ac3ddf1c27f40e0e552780171352e734d
 
     std::string musicIDs = getResultFromCommand(("python3 youtube-search.py \"" + Query + "\" & wait").c_str());
 
     if (!musicIDs.length())
     {
+<<<<<<< HEAD
+        event.from->log(dpp::loglevel::ll_info, "Red ID : " + ID);
+        infofile.open("Music/" + ID + ".info.json");
+        infofile >> document;
+        infofile.close();
+
+        FQueueElement Data = {
+            ID,
+            Bot->makeEmbed(
+            document["webpage_url"],
+            document["title"],
+            document["uploader"],
+            document["id"],
+            document["thumbnail"],
+            int(document["duration"]))
+        };
+
+        RequestedMusic.push(Data);
+=======
         event.from->log(dpp::loglevel::ll_debug, "유튜브 검색 결과 없음");
         event.edit_response("검색 결과가 없습니다.");
         return;
+>>>>>>> 68b6105ac3ddf1c27f40e0e552780171352e734d
     }
     
     std::stringstream sstream(musicIDs);
@@ -81,6 +111,15 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
             event.from->log(dpp::loglevel::ll_debug, "다운로드 시작");
             std::system(("python3 yt-download.py \"" + musicID + "\" & wait").c_str());
 
+<<<<<<< HEAD
+    if (v && v->voiceclient && v->voiceclient->is_ready())
+    {
+        auto _copiedQueue = RequestedMusic;
+        while (!_copiedQueue.empty())
+        {
+            Bot->enqueueMusic(_copiedQueue.front(), v->voiceclient);
+            _copiedQueue.pop();
+=======
             event.from->log(dpp::loglevel::ll_debug, "musicID: " + musicID);
             std::ifstream infofile;
             infofile.open((std::string("Music/") + musicID + ".info.json").c_str());
@@ -102,6 +141,7 @@ void commands::Play::operator()(const dpp::slashcommand_t& event)
         else {
             event.from->log(dpp::loglevel::ll_debug, "DB쿼리 완료");
             on_DLCompleted(musicID, *embed, event);
+>>>>>>> 68b6105ac3ddf1c27f40e0e552780171352e734d
         }
     }
     return;
@@ -135,6 +175,29 @@ void commands::Play::on_DLCompleted(std::string musicID, dpp::embed embed, const
 
         event.from->creator->message_create(followMsg);
     }
+}
+
+void commands::Play::operator()(const dpp::slashcommand_t& event)
+{
+    if (std::holds_alternative<std::monostate>(event.get_parameter("query")))
+    {
+        event.reply("노래를 재생하려면 검색어 또는 링크를 입력해 주십시오.");
+        return;
+    }
+
+    /* Attempt to connect to a voice channel, returns false if we fail to connect. */
+    if (!event.from->get_voice(event.command.guild_id))
+    {
+        if (!dpp::find_guild(event.command.guild_id)->connect_member_voice(event.command.get_issuing_user().id))
+        {
+            return event.reply("노래를 재생할 음성 채팅방에 먼저 참가하고 신청해야 합니다!");
+        }
+    }
+
+    event.thinking();
+
+    std::thread t1(_Internal_Enqueue_Func, event, Bot);
+    t1.detach();
 
     auto voiceconn = event.from->get_voice(event.command.guild_id);
 
