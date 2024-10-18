@@ -75,6 +75,10 @@
         "set": "cpp",
         "regex": "cpp",
         "format": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "strstream": "cpp",
+        "complex": "cpp",
+        "source_location": "cpp",
+        "typeindex": "cpp"
     }
 }

@@ -5,3 +5,5 @@ out/
 tmp/
 config.json
 Music
+*.info.json
+yt-dlp

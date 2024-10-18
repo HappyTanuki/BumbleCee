@@ -17,12 +17,10 @@ set_target_properties(${BOT_NAME} PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-target_compile_definitions(${BOT_NAME} PUBLIC DPP_CORO)
-target_compile_features(${BOT_NAME} PUBLIC cxx_std_20)
-
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 find_package(DPP)
+find_package(VLC)
 if(APPLE)
 	if(CMAKE_APPLE_SILICON_PROCESSOR)
 		set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl")
@@ -44,8 +42,11 @@ target_link_libraries(${BOT_NAME}
     dl
     dpp
     opus
+    opusfile
+    ogg
     oggz
     mariadbcpp
+    curl
     ${CMAKE_THREAD_LIBS_INIT}
     ${OPENSSL_CRYPTO_LIBRARY} 
     ${OPENSSL_SSL_LIBRARY}

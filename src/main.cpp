@@ -1,19 +1,12 @@
-#include <BumbleCeepp.hpp>
-#include <dpp/nlohmann/json.hpp>
-#include <memory>
+#include <iostream>
+#include <BumbleBee.hpp>
 
-using json = nlohmann::json;
-
-int main()
-{
-    json configdocument;
+int main() {
+    nlohmann::json configdocument;
     std::ifstream configfile("config.json");
     configfile >> configdocument;
 
-    std::shared_ptr<BumbleCeepp> bumbleBee = std::make_shared<BumbleCeepp>(
-        configdocument["token"], configdocument["dbURL"], configdocument["user"], configdocument["password"]);
+    bumbleBee::BumbleBee bot(configdocument);
 
-    bumbleBee->start();
-    
-    return 0;
+    bot.start();
 }
