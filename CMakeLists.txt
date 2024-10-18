@@ -79,3 +79,5 @@ else()
 
     target_link_libraries(${BOT_NAME} dpp)
 endif()
+
+set(CMAKE_CXX_FLAGS "-g")

@@ -2,7 +2,7 @@
 
 namespace bumbleBee{
 BumbleBee::BumbleBee(nlohmann::json settings) {
-    this->cluster = std::make_unique<dpp::cluster>(settings["token"]);
+    this->cluster = std::make_shared<dpp::cluster>(settings["token"]);
     dbDriver = sql::mariadb::get_driver_instance();
     this->dbURL = std::make_shared<sql::SQLString>(settings["dbURL"]);
     sql::Properties pro({
@@ -16,21 +16,16 @@ BumbleBee::BumbleBee(nlohmann::json settings) {
     cluster->on_ready([this](const dpp::ready_t &event){on_ready(event);});
 }
 
-BumbleBee::~BumbleBee() {
-}
-
 void BumbleBee::start() { this->cluster->start(dpp::st_wait); }
 
-bool BumbleBee::addCommand(commands::ICommand cmd) {
-    commands.push_back(cmd);
-    return false;
-}
-
 void BumbleBee::on_slashcommand(const dpp::slashcommand_t &event) {
-
+    for (auto command : commands)
+        for (auto alias : command->nameAndAliases)
+            if (event.command.get_command_name() == alias.name)
+                (*command)(event);
 }
+
 void BumbleBee::on_ready(const dpp::ready_t &event) {
     cluster->log(dpp::loglevel::ll_info, "Bot ready.");
 }
-
 }

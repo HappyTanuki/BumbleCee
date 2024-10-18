@@ -1,8 +1,5 @@
 build/*
-out/
-.vs/
-.idea/
-tmp/
+Temp/
 config.json
 Music
 *.info.json

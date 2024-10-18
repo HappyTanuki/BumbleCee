@@ -27,19 +27,13 @@ public:
      * @brief 파괴자
      * @details BumbleBee의 모든 Property를 책임지고 파괴합니다
     **/
-    ~BumbleBee();
+    ~BumbleBee() {}
 
     /**
      * @fn void start()
      * @brief 봇 시작
     **/
     void start();
-    /**
-     * @fn bool addCommand(commands::ICommand cmd)
-     * @brief ICommand 인터페이스에 맞는 커맨드를 추가
-     * @warning 이 메소드는 start()메소드가 호출되기 전에 호출되어야 함
-    **/
-    bool addCommand(commands::ICommand cmd);
 
     /**
      * @fn void on_slashcommand(const dpp::slashcommand_t& event)
@@ -53,9 +47,12 @@ public:
      * @param event
     **/
     void on_ready(const dpp::ready_t &event);
-private:
+
     /// @brief DPP 기본 클러스터 객체
-    std::unique_ptr<dpp::cluster> cluster;
+    std::shared_ptr<dpp::cluster> cluster;
+    /// @brief 음악 큐
+    std::shared_ptr<MusicQueue> queue;
+private:
     /// @brief db 드라이버
     sql::Driver* dbDriver;
     /// @brief db 접속 URL
@@ -63,9 +60,7 @@ private:
     /// @brief db 접속 속성
     std::shared_ptr<sql::Properties> dbProperties;
     /// @brief Command 목록
-    std::vector<commands::ICommand> commands;
-    /// @brief 음악 큐
-    std::shared_ptr<MusicQueue> queue;
+    std::vector<std::shared_ptr<commands::ICommand>> commands;
 };
 }
 #endif

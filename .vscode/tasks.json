@@ -8,7 +8,7 @@
             "command": "make",
             "args": [],
             "options": {
-                "cwd": "/home/happytanuki/BumbleCee/build/"
+                "cwd": "${workspaceFolder}/build/"
             },
             "group": {
                 "kind": "build",
@@ -24,7 +24,7 @@
                 ".."
             ],
             "options": {
-                "cwd": "/home/happytanuki/BumbleCee/build/"
+                "cwd": "${workspaceFolder}/build/"
             },
             "group": {
                 "kind": "build",
