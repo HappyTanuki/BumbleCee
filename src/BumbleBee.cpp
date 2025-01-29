@@ -14,6 +14,8 @@ BumbleBee::BumbleBee(nlohmann::json settings) {
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_slashcommand([this](const dpp::slashcommand_t& event){on_slashcommand(event);});
     cluster->on_ready([this](const dpp::ready_t &event){on_ready(event);});
+
+    queue = std::make_shared<MusicQueue>();
 }
 
 void BumbleBee::start() { this->cluster->start(dpp::st_wait); }

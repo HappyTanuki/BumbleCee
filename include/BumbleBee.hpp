@@ -3,7 +3,6 @@
 #define _BUMBLEBEE_HPP_
 #include <dpp/dpp.h>
 #include <dpp/nlohmann/json.hpp>
-#include <boost/asio.hpp>
 #include <memory>
 #include <BumbleBeeCommand.hpp>
 #include <MusicQueue.hpp>

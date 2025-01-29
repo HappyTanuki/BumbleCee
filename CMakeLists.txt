@@ -20,7 +20,6 @@ set_target_properties(${BOT_NAME} PROPERTIES
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 find_package(DPP)
-find_package(VLC)
 if(APPLE)
 	if(CMAKE_APPLE_SILICON_PROCESSOR)
 		set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl")

@@ -11,10 +11,11 @@ int main() {
     bumbleBee::BumbleBee bot(configdocument);
 
     bumbleBee::AsyncDownloadManager& manager = bumbleBee::AsyncDownloadManager::getInstance(5, bot.cluster, bot.queue);
-    manager.enqueue("https://music.youtube.com/playlist?list=PL5NSTAfQ-wQBqZYMTqxADemyUW8mxJq2h&si=S1OwPaaif_litCqN");
+    manager.enqueue("https://music.youtube.com/playlist?list=PL5NSTAfQ-wQBqZYMTqxADemyUW8mxJq2h&si=vFV4jlm70kxGfKNa");
 
-    std::thread th([](){sleep(100);});
+    std::thread th([](){sleep(11);});
     th.join();
 
+    std::cout << "\n\n\n\n\nend\n\n\n\n\n\n\n";
     //bot.start();
 }

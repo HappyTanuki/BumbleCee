@@ -9,8 +9,9 @@ void AsyncDownloadManager::enqueueAsyncDL(std::string query) {
     dlQueueCondition.notify_one();
 }
 
-std::string getResultFromCommand(std::string cmd) {
-	std::string result;
+std::queue<std::string> getResultFromCommand(std::string cmd) {
+	std::string result, token;
+    std::queue<std::string> tokens;
 	FILE* stream;
 	const int maxBuffer = 12; // 버퍼의 크기는 적당하게
 	char buffer[maxBuffer];
@@ -19,9 +20,15 @@ std::string getResultFromCommand(std::string cmd) {
     stream = popen(cmd.c_str(), "r"); // 주어진 command를 shell로 실행하고 파이프 연결 (fd 반환)
     	if (stream) {
     		while (fgets(buffer, maxBuffer, stream) != NULL) result.append(buffer); // fgets: fd (stream)를 길이 (maxBuffer)만큼 읽어 버퍼 (buffer)에 저장
-    		pclose(stream); // 파이프 닫는 것 잊지 마시고요!
+    		pclose(stream);
     	}
-	return result;
+
+    std::stringstream ss(result);
+    while (std::getline(ss, token, '\n')) {
+        tokens.push(token);
+    }
+
+	return tokens;
 }
 
 void AsyncDownloadManager::downloadWorker() {
@@ -31,26 +38,26 @@ void AsyncDownloadManager::downloadWorker() {
         //mutex lock
         std::unique_lock<std::mutex> dlQueueLock(dlQueueMutex);
         dlQueueCondition.wait(dlQueueLock, [&]{ return !downloadQueue.empty() || terminate; });
+        auto cluster = bot.lock();
+        assert(cluster);
+        if (terminate) {
+            cluster->log(dpp::ll_info, "Terminating Thread" + tid.str());
+            break;
+        }
         std::string query = downloadQueue.front();
         downloadQueue.pop();
         dlQueueLock.unlock();
-        auto cluster = bot.lock();
-        assert(cluster);
 
         cluster->log(dpp::ll_info, "Enqueuing " + query + " accepted.");
 
-        std::string idstring = getResultFromCommand("./yt-dlp --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
-        std::queue<std::string> ids;
-        std::stringstream ss(idstring);
-
-        std::string _id;
-        while (std::getline(ss, _id, '\n')) {
-            ids.push(_id);
-        }
+        std::queue<std::string> ids = getResultFromCommand("./yt-dlp --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
 
         if (ids.size() >= 2) {
-            cluster->log(dpp::ll_info, "Playlist detected.");
             while (!ids.empty()) {
+                if (ids.front() == "") {
+                    ids.pop();
+                    continue;
+                }
                 cluster->log(dpp::ll_info, "Enqueuing " + ids.front());
                 enqueue("https://youtu.be/" + ids.front());
                 ids.pop();
@@ -58,12 +65,31 @@ void AsyncDownloadManager::downloadWorker() {
             break;
         }
 
-        cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + ids.front() + " accepted.");
+        std::queue<std::string> urls = getResultFromCommand("./yt-dlp -f ba* --print urls https://youtu.be/" + ids.front());
 
-        system(("./yt-dlp -o \"Temp/%(id)s\" --no-clean-info-json --write-info-json --default-search ytsearch \
-            --flat-playlist --skip-download --quiet --ignore-errors -f ba* https://youtu.be/" + ids.front()).c_str());
+        cluster->log(dpp::ll_info, "url: " + urls.front());
 
-        cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + ids.front() + " downloaded.");
+        musicQueue->enqueue(std::make_shared<MusicQueueElement>(ids.front(), urls.front()));
+
+        std::string downloadID = ids.front();
+
+        std::thread th([&, downloadID](){
+            if (terminate)
+                return;
+            std::ostringstream tid;
+            tid << std::this_thread::get_id();
+
+            cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " accepted.");
+
+            system(("./yt-dlp -o \"Temp/%(id)s\" --quiet --ignore-errors -f ba* https://youtu.be/" + downloadID).c_str());
+            
+            system((std::string() + "yes n 2>/dev/null | ffmpeg -hide_banner -loglevel error -i \""
+                + "Temp/" + downloadID + "\" -acodec libopus -vn Music/" + downloadID + ".ogg").c_str());
+            system((std::string() + "rm -f Temp/" + downloadID).c_str());
+            
+            cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " downloaded.");
+        });
+        th.detach();
     }
 }
 }

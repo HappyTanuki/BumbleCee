@@ -14,7 +14,7 @@
 namespace bumbleBee {
 class AsyncDownloadManager {
 public:
-    static AsyncDownloadManager& getInstance(int worker_count, std::weak_ptr<dpp::cluster> bot, std::weak_ptr<bumbleBee::MusicQueue> musicQueue) {
+    static AsyncDownloadManager& getInstance(int worker_count, std::weak_ptr<dpp::cluster> bot, std::shared_ptr<bumbleBee::MusicQueue> musicQueue) {
         static AsyncDownloadManager dl(worker_count);
         dl.bot = bot;
         dl.musicQueue = musicQueue;
@@ -24,15 +24,11 @@ public:
         std::thread th(&bumbleBee::AsyncDownloadManager::enqueueAsyncDL, this, query);
         th.detach();
     }
-private:
-    AsyncDownloadManager(int worker_count){
-        worker_thread.reserve(worker_count);
-        terminate = false;
-        for (int i=0; i<worker_count; i++) {
-            worker_thread.emplace_back([this](){this->downloadWorker();});
-        }
-    }
+
     ~AsyncDownloadManager(){
+        auto cluster = bot.lock();
+        assert(cluster);
+        cluster->log(dpp::ll_info, "AsyncDownloadManager Destructor called.");
         terminate = true;
         dlQueueCondition.notify_all();
 
@@ -41,6 +37,15 @@ private:
         }
     }
 
+private:
+    AsyncDownloadManager(int worker_count){
+        worker_thread.reserve(worker_count);
+        terminate = false;
+        for (int i=0; i<worker_count; i++) {
+            worker_thread.emplace_back([this](){this->downloadWorker();});
+        }
+    }
+    
     void enqueueAsyncDL(std::string query);
     void downloadWorker();
 
@@ -48,7 +53,7 @@ private:
     std::condition_variable dlQueueCondition;
     std::mutex dlQueueMutex;
     std::weak_ptr<dpp::cluster> bot;
-    std::weak_ptr<bumbleBee::MusicQueue> musicQueue;
+    std::shared_ptr<bumbleBee::MusicQueue> musicQueue;
     std::vector<std::thread> worker_thread;
     bool terminate;
 };
