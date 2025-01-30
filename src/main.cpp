@@ -4,17 +4,14 @@
 #include <thread>
 
 int main() {
-    nlohmann::json configdocument;
-    std::ifstream configfile("config.json");
-    configfile >> configdocument;
-
-    bumbleBee::BumbleBee bot(configdocument);
+    bumbleBee::BumbleBee bot;
 
     bumbleBee::AsyncDownloadManager& manager = bumbleBee::AsyncDownloadManager::getInstance(5, bot.cluster, bot.queue);
-    manager.enqueue("https://music.youtube.com/playlist?list=PL5NSTAfQ-wQBqZYMTqxADemyUW8mxJq2h&si=vFV4jlm70kxGfKNa");
+    manager.enqueue(std::make_pair("https://music.youtube.com/watch?v=4NnqIu_v1QA&si=buZP2UwzQtJLENmb", nullptr));
 
-    std::thread th([](){sleep(11);});
+    std::thread th([](){sleep(60);});
     th.join();
+    manager.stop();
 
     std::cout << "\n\n\n\n\nend\n\n\n\n\n\n\n";
     //bot.start();

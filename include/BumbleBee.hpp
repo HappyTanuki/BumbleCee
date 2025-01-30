@@ -18,9 +18,8 @@ public:
     /**
      * @fn BumbleBee(nlohmann::json settings)
      * @brief 생성자
-     * @param settings 설정 json
     **/
-    BumbleBee(nlohmann::json settings);
+    BumbleBee();
     /**
      * @fn ~BumbleBee()
      * @brief 파괴자

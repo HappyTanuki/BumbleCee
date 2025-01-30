@@ -1,13 +1,17 @@
 #include <BumbleBee.hpp>
+#include <memory>
+#include <Settings/SettingsManager.hpp>
+#include <Utils/VersionsCheckUtils.hpp>
 
 namespace bumbleBee{
-BumbleBee::BumbleBee(nlohmann::json settings) {
-    this->cluster = std::make_shared<dpp::cluster>(settings["token"]);
+BumbleBee::BumbleBee() {
+    settingsManager::load();
+    this->cluster = std::make_shared<dpp::cluster>(settingsManager::TOKEN);
     dbDriver = sql::mariadb::get_driver_instance();
-    this->dbURL = std::make_shared<sql::SQLString>(settings["dbURL"]);
+    this->dbURL = std::make_shared<sql::SQLString>(settingsManager::DBURL);
     sql::Properties pro({
-        {"user", std::string(settings["user"])},
-        {"password", std::string(settings["password"])}
+        {"user", std::string(settingsManager::DBUSER)},
+        {"password", std::string(settingsManager::DBPASSWORD)}
     });
     this->dbProperties = std::make_shared<sql::Properties>(pro);
 
@@ -16,6 +20,9 @@ BumbleBee::BumbleBee(nlohmann::json settings) {
     cluster->on_ready([this](const dpp::ready_t &event){on_ready(event);});
 
     queue = std::make_shared<MusicQueue>();
+    
+    VersionsCheckUtils::validateYTDLPFFMPEGBinary(cluster);
+    VersionsCheckUtils::updateytdlp(cluster);
 }
 
 void BumbleBee::start() { this->cluster->start(dpp::st_wait); }

@@ -7,15 +7,19 @@
 namespace bumbleBee::commands {
 class ICommand {
 public:
-    /// @brief 기본 생성자
-    /// @param botID 명령어 등록을 위한 봇 아이디
-    /// @param queue 음악이 저장되어 있는 큐
+    /**
+     * @brief 기본 생성자
+     * @param botID 명령어 등록을 위한 봇 아이디
+     * @param queue 음악이 저장되어 있는 큐
+    **/
     ICommand(dpp::snowflake botID, std::weak_ptr<MusicQueue> queue) {
         this->botID = botID;
         this->queue = queue;
     }
-    /// @brief 명령어 호출 시에 콜백되는 함수
-    /// @param event
+    /**
+     * @brief 명령어 호출 시에 콜백될 메소드
+     * @param event dpp::slashcommand_t
+    **/
     virtual void operator()(const dpp::slashcommand_t &event){};
 
     /// @brief 봇 명령어들의 이름과 별명들을 저장하는 벡터
@@ -26,11 +30,19 @@ private:
     dpp::snowflake botID;
     /// @brief 음악 큐에 대한 약한 포인터
     std::weak_ptr<MusicQueue> queue;
+
+    /**
+     * @brief 명령어 별명 추가
+     * @param name 명령어 이름
+     * @param description 명령어 설명
+    **/
+    void addCommandAliase(std::string name, std::string description) {
+        nameAndAliases.push_back(dpp::slashcommand(name, description, botID));
+    }
 };
 }
 
 /**
- * @fn _DECLARE_BUMBLEBEE_COMMAND_one_PARAM_one_ALIAS(name, alias, description, option_name, option_desc)
  * @brief 명령어 인자가 없는 명령어의 boilerplate 대체 매크로
  * @param name 명령어 이름 및 클래스명
  * @param alias 명령어 별명
@@ -52,7 +64,6 @@ public: \
 }
 
 /**
- * @fn _DECLARE_BUMBLEBEE_COMMAND_one_PARAM_one_ALIAS(name, alias, description, option_name, option_desc)
  * @brief 명령어 인자를 하나 갖는 명령어의 boilerplate 대체 매크로
  * @param name 명령어 이름 및 클래스명
  * @param alias 명령어 별명

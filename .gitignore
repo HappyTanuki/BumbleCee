@@ -4,3 +4,4 @@ config.json
 Music
 *.info.json
 yt-dlp
+ffmpeg

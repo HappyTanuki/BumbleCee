@@ -5,14 +5,23 @@
 #include <functional>
 #include <condition_variable>
 #include <list>
+#include <dpp/dpp.h>
 
 namespace bumbleBee {
 
 class MusicQueueElement {
 public:
-    MusicQueueElement(std::string id, std::string url) : id(id), url(url) {}
+    MusicQueueElement(
+        dpp::message originalResponse,
+        std::string id,
+        std::string url,
+        FILE* stream) :
+
+        originalResponse(originalResponse), id(id), url(url), stream(stream) {}
+    dpp::message originalResponse;
     std::string id;
     std::string url;
+    FILE* stream;
 };
 
 class MusicQueue {
@@ -23,6 +32,7 @@ public:
     }
     void enqueue(std::shared_ptr<MusicQueueElement> Element);
     std::shared_ptr<MusicQueueElement> dequeue();
+    std::shared_ptr<MusicQueueElement> findById(std::string id);
     std::weak_ptr<MusicQueueElement> nowplaying();
     std::weak_ptr<MusicQueueElement> next_music();
     std::weak_ptr<MusicQueueElement> jump_to_index(int idx);

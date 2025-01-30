@@ -6,7 +6,8 @@ set(BOT_NAME "BumbleCee")
 project(${BOT_NAME})
 aux_source_directory("src" coresrc)
 aux_source_directory("src/Commands" commands)
-add_executable(${BOT_NAME} ${coresrc} ${commands})
+aux_source_directory("src/Settings" settings)
+add_executable(${BOT_NAME} ${coresrc} ${commands} ${settings})
 
 string(ASCII 27 Esc)
 

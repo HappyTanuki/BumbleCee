@@ -5,36 +5,38 @@
 #include <string>
 #include <thread>
 #include <condition_variable>
-#include <curl/curl.h>
 #include <dpp/dpp.h>
 #include <MusicQueue.hpp>
 
 #define WORKER_COUNT 5
 
 namespace bumbleBee {
+/// @brief 싱글톤 멀티스레딩 다운로드 매니저
 class AsyncDownloadManager {
 public:
-    static AsyncDownloadManager& getInstance(int worker_count, std::weak_ptr<dpp::cluster> bot, std::shared_ptr<bumbleBee::MusicQueue> musicQueue) {
+    static AsyncDownloadManager& getInstance(int worker_count, std::weak_ptr<dpp::cluster> weak_cluster, std::shared_ptr<bumbleBee::MusicQueue> musicQueue) {
         static AsyncDownloadManager dl(worker_count);
-        dl.bot = bot;
+        dl.weak_cluster = weak_cluster;
         dl.musicQueue = musicQueue;
         return dl;
     }
-    void enqueue(std::string query) {
+    void enqueue(std::pair<std::string, dpp::message> query) {
         std::thread th(&bumbleBee::AsyncDownloadManager::enqueueAsyncDL, this, query);
         th.detach();
     }
-
-    ~AsyncDownloadManager(){
-        auto cluster = bot.lock();
-        assert(cluster);
-        cluster->log(dpp::ll_info, "AsyncDownloadManager Destructor called.");
+    void stop() {
+        auto cluster = weak_cluster.lock();
+        cluster->log(dpp::ll_info, "AsyncDownloadManager stop/destructor called.");
         terminate = true;
         dlQueueCondition.notify_all();
 
         for (auto& t : worker_thread) {
             t.join();
         }
+    }
+
+    ~AsyncDownloadManager(){
+        stop();
     }
 
 private:
@@ -46,13 +48,13 @@ private:
         }
     }
     
-    void enqueueAsyncDL(std::string query);
+    void enqueueAsyncDL(std::pair<std::string, dpp::message> query);
     void downloadWorker();
 
-    std::queue<std::string> downloadQueue;
+    std::queue<std::pair<std::string, dpp::message>> downloadQueue;
     std::condition_variable dlQueueCondition;
     std::mutex dlQueueMutex;
-    std::weak_ptr<dpp::cluster> bot;
+    std::weak_ptr<dpp::cluster> weak_cluster;
     std::shared_ptr<bumbleBee::MusicQueue> musicQueue;
     std::vector<std::thread> worker_thread;
     bool terminate;
