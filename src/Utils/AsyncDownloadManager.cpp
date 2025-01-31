@@ -1,4 +1,4 @@
-#include <AsyncDownloadManager.hpp>
+#include <Utils/AsyncDownloadManager.hpp>
 #include <sstream>
 #include "Utils/ConsoleUtils.hpp"
 #include "Settings/SettingsManager.hpp"
@@ -8,7 +8,6 @@
 #include <memory>
 
 namespace bumbleBee {
-
 void AsyncDownloadManager::enqueueAsyncDL(std::pair<std::string, dpp::message> query) {
     std::lock_guard<std::mutex> lock(dlQueueMutex);
     downloadQueue.push(query);
@@ -39,7 +38,7 @@ void AsyncDownloadManager::downloadWorker() {
         cluster->log(dpp::ll_info, "AsyncDownloadManager: " + query + " accepted.");
 
         std::queue<std::string> ids =
-            ConsoleUtils::getResultFromCommand(settingsManager::YTDLP_CMD +
+            ConsoleUtils::getResultFromCommand(settingsManager::getYTDLP_CMD() +
             " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
 
         if (ids.size() >= 2) {
@@ -53,18 +52,18 @@ void AsyncDownloadManager::downloadWorker() {
                 enqueue(std::make_pair("https://youtu.be/" + ids.front(), oRes));
                 ids.pop();
             }
-            break;
+            continue;
         }
 
         std::queue<std::string> urls =
-            ConsoleUtils::getResultFromCommand(settingsManager::YTDLP_CMD +
+            ConsoleUtils::getResultFromCommand(settingsManager::getYTDLP_CMD() +
             " -f ba* --print urls https://youtu.be/" + ids.front());
 
         cluster->log(dpp::ll_debug, "url: " + urls.front());
 
         FILE* stream;
 
-        musicQueue->enqueue(std::make_shared<MusicQueueElement>(oRes, ids.front(), urls.front(), stream));
+        // musicQueue->enqueue(std::make_shared<MusicQueueElement>(oRes, ids.front(), urls.front(), stream));
 
         std::string downloadID = ids.front();
 
@@ -76,12 +75,10 @@ void AsyncDownloadManager::downloadWorker() {
 
             cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " accepted.");
 
-            std::string command = std::string("./streamAndDownload.sh " + settingsManager::YTDLP_CMD + " " + downloadID + " " + settingsManager::FFMPEG_CMD);
+            std::string command = std::string("./streamOpus.sh " + settingsManager::getYTDLP_CMD() + " " + downloadID + " " + settingsManager::getFFMPEG_CMD());
             stream = popen(command.c_str(), "r");
-            pclose(stream);
-            stream = NULL;
-            
-            cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " download complete.");
+
+            cluster->log(dpp::ll_info, "Thread id: " + tid.str() + " Opened stream: " + downloadID);
         });
         th.detach();
     }

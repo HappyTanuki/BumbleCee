@@ -1,7 +1,6 @@
 build/*
 Temp/
-config.json
 Music
-*.info.json
+*.json
 yt-dlp
 ffmpeg
