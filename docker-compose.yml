@@ -1,6 +1,6 @@
 services:
   bumblebee:
-    build: .
+    image: happytanuki12/bumblebee:latest
     container_name: BumbleBee
     volumes:
       - ./config.json:/config.json

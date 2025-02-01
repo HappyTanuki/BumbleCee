@@ -36,7 +36,10 @@ std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::findByIndex(
 }
 std::shared_ptr<MusicQueueElement> MusicQueue::nowplaying() {
     std::lock_guard<std::mutex> lock(queueMutex);
-    return *currentPlayingPosition;
+    if (currentPlayingPosition == queue.end())
+        return nullptr;
+    else
+        return *currentPlayingPosition;
 }
 std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::next_music() {
     std::lock_guard<std::mutex> lock(queueMutex);

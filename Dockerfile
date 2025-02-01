@@ -19,10 +19,10 @@ RUN pip3 install --break-system-packages pycryptodome
 RUN curl -Lo dpp.deb https://dl.dpp.dev/
 RUN dpkg -i dpp.deb
 RUN rm dpp.deb
-RUN curl -LO https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz
-RUN tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz
-RUN rm ffmpeg-master-latest-linux64-gpl.tar.xz
-RUN mv ffmpeg-master-latest-linux64-gpl ffmpeg
+# RUN curl -LO https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz
+# RUN tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz
+# RUN rm ffmpeg-master-latest-linux64-gpl.tar.xz
+# RUN mv ffmpeg-master-latest-linux64-gpl ffmpeg
 RUN curl -LO https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
 RUN chmod +x ./yt-dlp
 COPY ./build/BumbleCee /BumbleCee

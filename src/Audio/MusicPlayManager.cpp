@@ -81,6 +81,8 @@ std::list<MusicQueueElement> MusicPlayManager::getQueue(const dpp::snowflake gui
 
 MusicQueueElement MusicPlayManager::getNowPlaying(const dpp::snowflake guildId) {
     std::shared_ptr<MusicQueueElement> nowplaying = queueMap[guildId]->nowplaying();
+    if (nowplaying == nullptr)
+        return MusicQueueElement("", "", dpp::user(), dpp::embed());
     MusicQueueElement returnValue(*nowplaying);
     return returnValue;
 }
