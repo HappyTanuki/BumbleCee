@@ -3,12 +3,6 @@
 
 namespace bumbleBee::commands {
     void Delete::execute(const dpp::slashcommand_t &event) {
-        if (std::holds_alternative<std::monostate>(event.get_parameter("pos"))) // 여기 들어올 일 있나?
-        {
-            event.edit_original_response(dpp::message("위치를 제공하여 주십시오"));
-            event.reply("");
-            return;
-        }
         int pos = std::get<std::int64_t>(event.get_parameter("pos"));
 
         if (pos < 0 || pos > musicManager->size(event.command.guild_id))

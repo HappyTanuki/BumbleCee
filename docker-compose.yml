@@ -1,0 +1,7 @@
+services:
+  bumblebee:
+    build: .
+    container_name: BumbleBee
+    volumes:
+      - ./config.json:/config.json
+    restart: unless-stopped

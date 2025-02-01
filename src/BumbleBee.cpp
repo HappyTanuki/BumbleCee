@@ -16,7 +16,7 @@ BumbleBee::BumbleBee() {
 
     cluster->on_log([](const dpp::log_t& event) {
 		if (event.severity >= SettingsManager::getLOGLEVEL()) {
-			std::cout << "[" << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(event.severity) << ": " << event.message << "\n";
+			std::cout << "[" << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(event.severity) << ": " << event.message << std::endl;
 		}
 	});
     cluster->on_slashcommand([this](const dpp::slashcommand_t& event){on_slashcommand(event);});

@@ -2,6 +2,7 @@
 #include <ogg/ogg.h>
 #include <oggz/oggz.h>
 #include <algorithm>
+#include <Settings/SettingsManager.hpp>
 
 namespace bumbleBee {
 
@@ -85,7 +86,10 @@ MusicQueueElement MusicPlayManager::getNowPlaying(const dpp::snowflake guildId) 
 }
 
 void MusicPlayManager::send_audio_to_voice(const MusicQueueElement& music, dpp::discord_voice_client* client) {
-    std::string command = "./streamOpus.sh ./yt-dlp ffmpeg https://youtu.be/";
+    std::string command = "./streamOpus.sh ";
+    command += SettingsManager::getYTDLP_CMD() + " ";
+    command += SettingsManager::getFFMPEG_CMD() + " ";
+    command += "https://youtu.be/";
     command += music.id;
 
     OGGZ* og = oggz_open_stdio(popen(command.c_str(), "r"), OGGZ_READ);
@@ -115,7 +119,7 @@ void MusicPlayManager::send_audio_to_voice(const MusicQueueElement& music, dpp::
         }
     }
 
-    client->creator->log(dpp::ll_info, "Sending " + music.id + " complete!");
+    client->creator->log(dpp::ll_info, "Sending " + music.embed.title + " - " + music.id + " complete!");
 
     oggz_close(og);
 
