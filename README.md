@@ -36,3 +36,6 @@ C++ Dpp 라이브러리를 이용해서 개발된 간단한 디스코드 음악�
 음성 채팅을 떠납니다.
 사용법:
 /l
+
+# docker
+happytanuki12/bumblebee:latest
