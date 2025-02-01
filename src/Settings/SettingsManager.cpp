@@ -6,13 +6,13 @@
 
 namespace bumbleBee {
 
-std::string settingsManager::TOKEN = "";
-std::string settingsManager::YTDLP_CMD = "./yt-dlp";
-std::string settingsManager::FFMPEG_CMD = "./ffmpeg/bin/ffmpeg";
-dpp::loglevel settingsManager::LOGLEVEL = dpp::ll_debug;
-bool settingsManager::CLCOMMAND = false;
+std::string SettingsManager::TOKEN = "";
+std::string SettingsManager::YTDLP_CMD = "./yt-dlp";
+std::string SettingsManager::FFMPEG_CMD = "./ffmpeg/bin/ffmpeg";
+dpp::loglevel SettingsManager::LOGLEVEL = dpp::ll_debug;
+bool SettingsManager::REGISTER_COMMAND = false;
 
-bool settingsManager::validateToken() {
+bool SettingsManager::validateToken() {
     nlohmann::json response;
     if (ConsoleUtils::getResultFromCommand("which curl").size() == 0) {
         std::cout << "curl is unavaliable. unresolable error please install curl." << std::endl;
@@ -32,7 +32,7 @@ bool settingsManager::validateToken() {
         return true;
 }
 
-bool settingsManager::load() {
+bool SettingsManager::load() {
     nlohmann::json configdocument;
     try {
         std::ifstream configfile("config.json");
@@ -66,7 +66,7 @@ bool settingsManager::load() {
         else // 값이 병신같을때 기본값으로 ll_info 부여
             LOGLEVEL = dpp::ll_info;
 
-        CLCOMMAND = configdocument["CLEAR_PREVIOUS_COMMAND"];
+        REGISTER_COMMAND = configdocument["CLEAR_PREVIOUS_COMMAND"];
     }
     catch (const nlohmann::json::type_error& e) {
         saveToFile();
@@ -79,7 +79,7 @@ bool settingsManager::load() {
     return true;
 }
 
-void settingsManager::saveToFile() {
+void SettingsManager::saveToFile() {
     nlohmann::json configdocument;
 
     configdocument["TOKEN"] = TOKEN;
@@ -107,7 +107,7 @@ void settingsManager::saveToFile() {
         break;
     }
     
-    configdocument["CLEAR_PREVIOUS_COMMAND"] = CLCOMMAND;
+    configdocument["CLEAR_PREVIOUS_COMMAND"] = REGISTER_COMMAND;
 
     std::ofstream configFile("config.json");
     if (configFile.is_open()) {

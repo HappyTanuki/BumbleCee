@@ -41,6 +41,8 @@ public:
 
     /// @brief DPP 기본 클러스터 객체
     std::shared_ptr<dpp::cluster> cluster;
+    /// @brief guild id 배열
+    std::vector<dpp::snowflake> GIDs;
 private:
     /// @brief Command 목록
     std::unordered_map<std::string, std::shared_ptr<commands::ICommand>> commands;

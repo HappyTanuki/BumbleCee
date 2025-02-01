@@ -62,7 +62,7 @@ protected: \
 _DECLARE_BUMBLEBEE_COMMAND(Delete,  d,          "큐의 해당하는 번호의 노래를 지웁니다")
 _DECLARE_BUMBLEBEE_COMMAND(Leave,   l,          "음성 채팅방을 떠납니다")
 _DECLARE_BUMBLEBEE_COMMAND(Play,    p,          "노래 재생")
-_DECLARE_BUMBLEBEE_COMMAND(Queue,   q,          "노래 예약 큐를 출력합니다")
+_DECLARE_BUMBLEBEE_COMMAND(Queue,   q,          "노래 예약 큐를 확인합니다")
 _DECLARE_BUMBLEBEE_COMMAND(Repeat,  r,          "반복을 켜거나 끕니다")
 _DECLARE_BUMBLEBEE_COMMAND(Skip,    s,          "현재 재생중인 곡을 스킵합니다")
 _DECLARE_BUMBLEBEE_COMMAND(Shuffle, shuffle,    "큐를 섞습니다")

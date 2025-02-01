@@ -38,7 +38,7 @@ void AsyncDownloadManager::downloadWorker() {
         cluster->log(dpp::ll_info, "AsyncDownloadManager: " + query + " accepted.");
 
         std::queue<std::string> ids =
-            ConsoleUtils::getResultFromCommand(settingsManager::getYTDLP_CMD() +
+            ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() +
             " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
 
         if (ids.size() >= 2) {
@@ -56,7 +56,7 @@ void AsyncDownloadManager::downloadWorker() {
         }
 
         std::queue<std::string> urls =
-            ConsoleUtils::getResultFromCommand(settingsManager::getYTDLP_CMD() +
+            ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() +
             " -f ba* --print urls https://youtu.be/" + ids.front());
 
         cluster->log(dpp::ll_debug, "url: " + urls.front());
@@ -75,7 +75,7 @@ void AsyncDownloadManager::downloadWorker() {
 
             cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " accepted.");
 
-            std::string command = std::string("./streamOpus.sh " + settingsManager::getYTDLP_CMD() + " " + downloadID + " " + settingsManager::getFFMPEG_CMD());
+            std::string command = std::string("./streamOpus.sh " + SettingsManager::getYTDLP_CMD() + " " + downloadID + " " + SettingsManager::getFFMPEG_CMD());
             stream = popen(command.c_str(), "r");
 
             cluster->log(dpp::ll_info, "Thread id: " + tid.str() + " Opened stream: " + downloadID);

@@ -1,5 +1,6 @@
 #include <Queue/MusicQueue.hpp>
 #include <iostream>
+#include <algorithm>
 
 namespace bumbleBee {
 
@@ -25,14 +26,23 @@ std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::findById(std
     }
     return queue.end();
 }
+std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::findByIndex(int index) {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    if (index < 0)
+        return queue.end();
+    if (index == 0)
+        return currentPlayingPosition;
+    return std::next(queue.begin(), index - 1);
+}
 std::shared_ptr<MusicQueueElement> MusicQueue::nowplaying() {
+    std::lock_guard<std::mutex> lock(queueMutex);
     return *currentPlayingPosition;
 }
 std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::next_music() {
     std::lock_guard<std::mutex> lock(queueMutex);
-    if (currentPlayingPosition == std::prev(queue.end()) || !repeat)
+    if (currentPlayingPosition == --queue.end() && !repeat)
         return queue.end();
-    if (currentPlayingPosition == std::prev(queue.end()) || repeat)
+    if (currentPlayingPosition == --queue.end() && repeat)
         currentPlayingPosition = queue.begin();
     else
         ++currentPlayingPosition;
@@ -48,5 +58,40 @@ std::shared_ptr<MusicQueueElement> MusicQueue::jump_to_index(int idx) {
         }
     }
     return std::shared_ptr<MusicQueueElement>();
+}
+void MusicQueue::clear() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    queue.clear();
+    currentPlayingPosition = queue.begin();
+}
+std::shared_ptr<MusicQueueElement> MusicQueue::erase(std::list<std::shared_ptr<MusicQueueElement>>::iterator it) {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    if (it == queue.end())
+        return nullptr;
+    
+    if (currentPlayingPosition == it) {
+        auto removedValue = *it;
+        auto after = queue.erase(currentPlayingPosition++);
+        if (after == queue.end())
+            currentPlayingPosition = --queue.end();
+        return removedValue;
+    }
+    else {
+        auto removedValue = *it;
+        queue.erase(it);
+        return removedValue;
+    }
+}
+std::list<std::shared_ptr<MusicQueueElement>> MusicQueue::getQueueCopy(){
+    std::lock_guard<std::mutex> lock(queueMutex);
+    std::list<std::shared_ptr<MusicQueueElement>> returnValue;
+
+    std::copy(queue.begin(), queue.end(), std::back_inserter(returnValue));
+
+    return returnValue; 
+}
+int MusicQueue::size() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    return queue.size();
 }
 }

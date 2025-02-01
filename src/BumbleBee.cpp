@@ -7,15 +7,15 @@
 
 namespace bumbleBee{
 BumbleBee::BumbleBee() {
-    if (!settingsManager::load()) {
+    if (!SettingsManager::load()) {
         std::cout << "Please configure confing.json" << std::endl;
         exit(1);
     }
 
-    cluster = std::make_shared<dpp::cluster>(settingsManager::getTOKEN());
+    cluster = std::make_shared<dpp::cluster>(SettingsManager::getTOKEN());
 
     cluster->on_log([](const dpp::log_t& event) {
-		if (event.severity >= settingsManager::getLOGLEVEL()) {
+		if (event.severity >= SettingsManager::getLOGLEVEL()) {
 			std::cout << "[" << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(event.severity) << ": " << event.message << "\n";
 		}
 	});
@@ -24,22 +24,6 @@ BumbleBee::BumbleBee() {
 
     VersionsCheckUtils::validateYTDLPFFMPEGBinary(cluster);
     VersionsCheckUtils::updateytdlp(cluster);
-
-    musicManager = std::make_shared<MusicPlayManager>(cluster);
-
-    commands["d"] = std::make_shared<commands::Delete>  (cluster->cluster_id, musicManager);
-    commands["l"] = std::make_shared<commands::Leave>   (cluster->cluster_id, musicManager);
-    commands["p"] = std::make_shared<commands::Play>    (cluster->cluster_id, musicManager);
-    commands["q"] = std::make_shared<commands::Queue>   (cluster->cluster_id, musicManager);
-    commands["r"] = std::make_shared<commands::Repeat>  (cluster->cluster_id, musicManager);
-    commands["s"] = std::make_shared<commands::Skip>    (cluster->cluster_id, musicManager);
-
-    for (auto command : commands) {
-        for (auto aliase : command.second->aliases) {
-            commands[aliase] = std::shared_ptr<commands::ICommand>(command.second);
-            commands[aliase]->set_name(aliase);
-        }
-    }
 }
 
 void BumbleBee::start() { this->cluster->start(dpp::st_wait); }
@@ -56,7 +40,16 @@ void BumbleBee::on_slashcommand(const dpp::slashcommand_t &event) {
 }
 
 void BumbleBee::on_ready(const dpp::ready_t &event) {
-    cluster->log(dpp::loglevel::ll_info, "Bot ready.");
+    GIDs = event.guilds;
+    musicManager = std::make_shared<MusicPlayManager>(cluster, GIDs);
+
+    commands["d"]       = std::make_shared<commands::Delete>  (cluster->cluster_id, musicManager);
+    commands["l"]       = std::make_shared<commands::Leave>   (cluster->cluster_id, musicManager);
+    commands["p"]       = std::make_shared<commands::Play>    (cluster->cluster_id, musicManager);
+    commands["q"]       = std::make_shared<commands::Queue>   (cluster->cluster_id, musicManager);
+    commands["r"]       = std::make_shared<commands::Repeat>  (cluster->cluster_id, musicManager);
+    commands["s"]       = std::make_shared<commands::Skip>    (cluster->cluster_id, musicManager);
+    commands["shuffle"] = std::make_shared<commands::Shuffle> (cluster->cluster_id, musicManager);
     
     if (event.guilds.size() == 0) {
         cluster->log(dpp::loglevel::ll_info, "Bot is not on any server! Please invite this bot to any server.");
@@ -64,18 +57,24 @@ void BumbleBee::on_ready(const dpp::ready_t &event) {
     }
     
     if (dpp::run_once<struct register_bot_commands>()) {
-        if (settingsManager::getCLCOMMAND()) {
+        if (SettingsManager::getREGISTER_COMMAND()) {
             cluster->log(dpp::loglevel::ll_info, "Clear Pre-installed commands");
-            cluster->global_bulk_command_delete([](const dpp::confirmation_callback_t &t){
-                std::cout << "cleared Pre-installed commands. Please restart Bot" << std::endl;
-                settingsManager::setCLCOMMAND(false);
-                exit(0);
+
+            cluster->global_bulk_command_create({
+                *commands["d"],
+                *commands["l"],
+                *commands["p"],
+                *commands["q"],
+                *commands["r"],
+                *commands["s"],
+                *commands["shuffle"]
+            }, [&](const dpp::confirmation_callback_t &t){
+                cluster->log(dpp::loglevel::ll_info, "Command created.");
+                SettingsManager::setREGISTER_COMMAND(false);
             });
-            return;
         }
-        for (auto command : commands)
-            cluster->global_command_create(*command.second);
     }
-    cluster->log(dpp::loglevel::ll_info, "Command created.");
+
+    cluster->log(dpp::loglevel::ll_info, "Bot ready.");
 }
 }

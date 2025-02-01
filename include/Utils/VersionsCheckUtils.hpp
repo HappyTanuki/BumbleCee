@@ -19,7 +19,7 @@ public:
 
     static void validateYTDLPFFMPEGBinary(std::shared_ptr<dpp::cluster> cluster) {
         cluster->log(dpp::ll_info, "Checking if yt-dlp and ffmpeg is available...");
-        std::queue<std::string> result = ConsoleUtils::getResultFromCommand(settingsManager::getFFMPEG_CMD() + " -version");
+        std::queue<std::string> result = ConsoleUtils::getResultFromCommand(SettingsManager::getFFMPEG_CMD() + " -version");
         std::string front = result.front();
         if (front[0] != 'f' ||
             front[1] != 'f' ||
@@ -40,9 +40,9 @@ public:
             system("tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz");
             system("rm ffmpeg-master-latest-linux64-gpl.tar.xz");
             system("mv ffmpeg-master-latest-linux64-gpl ffmpeg");
-            settingsManager::setFFMPEG_CMD("./ffmpeg/bin/ffmpeg");
+            SettingsManager::setFFMPEG_CMD("./ffmpeg/bin/ffmpeg");
         }
-        result = ConsoleUtils::getResultFromCommand(settingsManager::getYTDLP_CMD() + " --version");
+        result = ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() + " --version");
         front = result.front();
         if ((front[0]-'0' < 0 || front[0]-'0' > 9) ||
             (front[1]-'0' < 0 || front[1]-'0' > 9) ||
@@ -59,7 +59,7 @@ public:
 
             system("curl -LO https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp");
             system("chmod +x ./yt-dlp");
-            settingsManager::setYTDLP_CMD("./yt-dlp");
+            SettingsManager::setYTDLP_CMD("./yt-dlp");
         }
     }
 

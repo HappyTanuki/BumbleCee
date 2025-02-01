@@ -2,9 +2,15 @@
 
 namespace bumbleBee::commands {
     void Repeat::execute(const dpp::slashcommand_t &event) {
-        event.edit_original_response(dpp::message("repeat"));
+        if (musicManager->getRepeat(event.command.guild_id)) {
+            event.edit_original_response(dpp::message("반복을 껐습니다."));
+            musicManager->setRepeat(event.command.guild_id, false);
+        }
+        else {
+            event.edit_original_response(dpp::message("반복을 켰습니다."));
+            musicManager->setRepeat(event.command.guild_id, true);
+        }
     }
 
-    void Repeat::init() {
-    }
+    void Repeat::init() {}
 }
