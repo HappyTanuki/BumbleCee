@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _MUSICPLAYMANAGER_HPP_
-#define _MUSICPLAYMANAGER_HPP_
 #include <dpp/dpp.h>
 #include <Queue/MusicQueue.hpp>
 #include <condition_variable>
@@ -50,7 +48,7 @@ public:
     void setRepeat(const dpp::snowflake guildId, const bool value);
     bool getRepeat(const dpp::snowflake guildId);
 
-    std::list<MusicQueueElement> getQueue(const dpp::snowflake guildId);
+    std::pair<std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>>, std::list<std::shared_ptr<MusicQueueElement>>::iterator> getQueue(const dpp::snowflake guildId);
     MusicQueueElement getNowPlaying(const dpp::snowflake guildId);
 
     std::condition_variable queuedCondition;
@@ -63,7 +61,6 @@ private:
 
     std::unordered_map<dpp::snowflake, std::shared_ptr<std::mutex>> queueEmptyMutex;
 
-    void send_audio_to_voice(const MusicQueueElement& music, dpp::discord_voice_client* client);
+    void send_audio_to_voice(std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client);
 };
 }
-#endif

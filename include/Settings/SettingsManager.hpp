@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SETTINGSMANAGER_HPP_
-#define _SETTINGSMANAGER_HPP_
 #include <dpp/dpp.h>
 
 #define _DECLARE_DEFAULT_ACCESSER_STATIC_VARIABLE(type, name, Name)\
@@ -34,4 +32,3 @@ public:
     static bool validateToken();
 };
 }
-#endif

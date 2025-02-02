@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _BUMBLEBEECOMMAND_HPP_
-#define _BUMBLEBEECOMMAND_HPP_
 #include <dpp/dpp.h>
 #include <Audio/MusicPlayManager.hpp>
 #include <functional>
@@ -66,5 +64,3 @@ _DECLARE_BUMBLEBEE_COMMAND(Queue,   q,          "노래 예약 큐를 확인합�
 _DECLARE_BUMBLEBEE_COMMAND(Repeat,  r,          "반복을 켜거나 끕니다")
 _DECLARE_BUMBLEBEE_COMMAND(Skip,    s,          "현재 재생중인 곡을 스킵합니다")
 _DECLARE_BUMBLEBEE_COMMAND(Shuffle, shuffle,    "큐를 섞습니다")
-
-#endif

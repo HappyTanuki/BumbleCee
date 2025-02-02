@@ -11,6 +11,8 @@ void MusicPlayManager::on_voice_ready(const dpp::voice_ready_t& event) {
 }
 
 void MusicPlayManager::on_voice_track_marker(const dpp::voice_track_marker_t& event) {
+    dpp::snowflake gid = dpp::find_channel(event.voice_client->channel_id)->guild_id;
+    queueMap[gid]->next_music();
     play(event.voice_client);
 }
 
@@ -23,13 +25,14 @@ void MusicPlayManager::on_voice_client_disconnect(const dpp::voice_client_discon
 void MusicPlayManager::play(dpp::discord_voice_client* client) {
     std::thread t([&](dpp::discord_voice_client* client){
         dpp::snowflake gid = dpp::find_channel(client->channel_id)->guild_id;
-
         std::unique_lock<std::mutex> queueEmptyLock(*queueEmptyMutex[gid]);
-        queuedCondition.wait(queueEmptyLock, [&]{ return queueMap[gid]->size() != 0; });
 
-        auto np = queueMap[gid]->next_music();
-        auto music = **np;
-        send_audio_to_voice(music, client);
+        queuedCondition.wait(queueEmptyLock, [&]{
+            return queueMap[gid]->size() != 0 && queueMap[gid]->currentPlayingPosition != queueMap[gid]->end();
+        });
+
+        auto next = queueMap[gid]->currentPlayingPosition;
+        send_audio_to_voice(*next, client);
     }, client);
     t.detach();
 }
@@ -69,13 +72,9 @@ bool MusicPlayManager::getRepeat(const dpp::snowflake guildId) {
     return queueMap[guildId]->repeat;
 }
 
-std::list<MusicQueueElement> MusicPlayManager::getQueue(const dpp::snowflake guildId){
-    std::list<std::shared_ptr<MusicQueueElement>> queue = queueMap[guildId]->getQueueCopy();
-    std::list<MusicQueueElement> returnValue;
-
-    for (auto iter = queue.begin(); iter != queue.end(); iter++)
-        returnValue.push_back(**iter);
-
+std::pair<std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>>, std::list<std::shared_ptr<MusicQueueElement>>::iterator>
+    MusicPlayManager::getQueue(const dpp::snowflake guildId){
+    auto returnValue = queueMap[guildId]->getQueueCopy();
     return returnValue;
 }
 
@@ -87,12 +86,12 @@ MusicQueueElement MusicPlayManager::getNowPlaying(const dpp::snowflake guildId) 
     return returnValue;
 }
 
-void MusicPlayManager::send_audio_to_voice(const MusicQueueElement& music, dpp::discord_voice_client* client) {
+void MusicPlayManager::send_audio_to_voice(std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) {
     std::string command = "./streamOpus.sh ";
     command += SettingsManager::getYTDLP_CMD() + " ";
     command += SettingsManager::getFFMPEG_CMD() + " ";
     command += "https://youtu.be/";
-    command += music.id;
+    command += music->id;
 
     OGGZ* og = oggz_open_stdio(popen(command.c_str(), "r"), OGGZ_READ);
 
@@ -110,7 +109,7 @@ void MusicPlayManager::send_audio_to_voice(const MusicQueueElement& music, dpp::
         (void *)client
     );
 
-    while (client && !client->terminating) {
+    while (client && !client->terminating && music != nullptr) {
         static const constexpr long CHUNK_READ = BUFSIZ * 2;
 
         const long read_bytes = oggz_read(og, CHUNK_READ);
@@ -121,7 +120,8 @@ void MusicPlayManager::send_audio_to_voice(const MusicQueueElement& music, dpp::
         }
     }
 
-    client->creator->log(dpp::ll_info, "Sending " + music.embed.title + " - " + music.id + " complete!");
+    if (music != nullptr)
+        client->creator->log(dpp::ll_info, "Sending " + music->embed.title + " - " + music->id + " complete!");
 
     oggz_close(og);
 

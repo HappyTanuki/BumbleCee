@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _MUSICQUEUEELEMENT_HPP_
-#define _MUSICQUEUEELEMENT_HPP_
 #include <dpp/dpp.h>
 
 namespace bumbleBee {
@@ -20,4 +18,3 @@ public:
     const dpp::embed embed;
 };
 }
-#endif

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _CONSOLEUTILS_HPP_
-#define _CONSOLEUTILS_HPP_
 #include <iostream>
 #include <sstream>
 #include <queue>
@@ -36,5 +34,3 @@ public:
     }
 };
 }
-
-#endif

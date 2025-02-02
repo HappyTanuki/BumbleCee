@@ -5,13 +5,10 @@ namespace bumbleBee::commands {
         dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
 
         if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
+            event.edit_original_response(dpp::message("스킵하려면 음악을 재생중이어야 합니다!"));
             return;
         }
-        // v->voiceclient->pause_audio(true);
-        // v->voiceclient->stop_audio();
-        // v->voiceclient->pause_audio(false);
-        // v->voiceclient->insert_marker("end");
-        v->voiceclient->skip_to_next_marker();
+        v->voiceclient->stop_audio();
         v->voiceclient->insert_marker();
 
         event.edit_original_response(dpp::message("스킵했습니다!"));

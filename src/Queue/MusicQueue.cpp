@@ -1,6 +1,7 @@
 #include <Queue/MusicQueue.hpp>
 #include <iostream>
 #include <algorithm>
+#include <Utils/QueuedMusicListEmbedProvider.hpp>
 
 namespace bumbleBee {
 
@@ -43,10 +44,10 @@ std::shared_ptr<MusicQueueElement> MusicQueue::nowplaying() {
 }
 std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::next_music() {
     std::lock_guard<std::mutex> lock(queueMutex);
-    if (currentPlayingPosition == --queue.end() && !repeat)
-        return queue.end();
     if (currentPlayingPosition == --queue.end() && repeat)
         currentPlayingPosition = queue.begin();
+    else if (currentPlayingPosition == --queue.end() && !repeat)
+        currentPlayingPosition = queue.end();
     else
         ++currentPlayingPosition;
     return currentPlayingPosition;
@@ -85,16 +86,28 @@ std::shared_ptr<MusicQueueElement> MusicQueue::erase(std::list<std::shared_ptr<M
         return removedValue;
     }
 }
-std::list<std::shared_ptr<MusicQueueElement>> MusicQueue::getQueueCopy(){
+std::pair<std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>>, std::list<std::shared_ptr<MusicQueueElement>>::iterator>
+    MusicQueue::getQueueCopy() {
     std::lock_guard<std::mutex> lock(queueMutex);
-    std::list<std::shared_ptr<MusicQueueElement>> returnValue;
+    std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>> returnValue = std::make_shared<std::list<std::shared_ptr<MusicQueueElement>>>();
 
-    std::copy(queue.begin(), queue.end(), std::back_inserter(returnValue));
+    for (auto i = queue.begin(); i != queue.end(); i++)
+        returnValue->push_back(*i);
 
-    return returnValue; 
+    if (returnValue->begin() == returnValue->end() || currentPlayingPosition == queue.end())
+        return std::make_pair(returnValue, returnValue->end());
+
+    std::list<std::shared_ptr<MusicQueueElement>>::iterator iter = returnValue->begin();
+    std::advance(iter, std::distance(queue.begin(), currentPlayingPosition));
+
+    return std::make_pair(returnValue, iter);
 }
 int MusicQueue::size() {
     std::lock_guard<std::mutex> lock(queueMutex);
     return queue.size();
+}
+std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::end() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    return queue.end();
 }
 }

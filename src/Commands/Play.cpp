@@ -22,6 +22,7 @@ namespace bumbleBee::commands {
             return;
         }
         std::string query = std::get<std::string>(event.get_parameter("query"));
+        query = "\"" + query + "\"";
 
         std::queue<std::string> ids =
             ConsoleUtils::getResultFromCommand(
@@ -55,20 +56,25 @@ namespace bumbleBee::commands {
             while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
                 oss.write(buffer, bytesRead);
             }
-            fclose(file);
+            pclose(file);
 
             std::istringstream iss(oss.str());
             nlohmann::json videoDataJson;
             iss >> videoDataJson;
 
             time_t SongLength = int(videoDataJson["duration"]);
-            char SongLengthStr[10];
+            char SongLengthStr[13];
             tm t;
             t.tm_mday = SongLength / 86400;
             t.tm_hour = (SongLength % 86400)/3600;
             t.tm_min = (SongLength % 3600)/60;
             t.tm_sec = SongLength%60;
-            strftime(SongLengthStr, sizeof(SongLengthStr), "%X", &t);
+            if (t.tm_mday > 0)
+                strftime(SongLengthStr, sizeof(SongLengthStr), "%d:%H:%M:%S", &t);
+            else if (t.tm_hour > 0)
+                strftime(SongLengthStr, sizeof(SongLengthStr), "%H:%M:%S", &t);
+            else
+                strftime(SongLengthStr, sizeof(SongLengthStr), "%M:%S", &t);
 
             dpp::embed embed = dpp::embed()
                 .set_color(dpp::colors::sti_blue)
@@ -86,23 +92,40 @@ namespace bumbleBee::commands {
             ids.pop();
         }
 
-        event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
-        musicManager->queue_music(event.command.guild_id, musics.front());
-        msg.add_embed(musics.front()->embed);
-        musics.pop();
-
-        event.edit_original_response(msg);
-        musicManager->queuedCondition.notify_all();
-
-        while (!musics.empty()) {
+        if (!musics.empty()) {
             event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
-            dpp::message followMsg(event.command.channel_id, "");
-
-            followMsg.add_embed(musics.front()->embed);
-            event.from->creator->message_create(followMsg); // 어차피 원래 메시지를 지정해서 수정할 것이기 때문에 먼저 팔로잉 메시지를 작성해도 상관없음.
-
             musicManager->queue_music(event.command.guild_id, musics.front());
+            msg.add_embed(musics.front()->embed);
             musics.pop();
+
+            event.edit_original_response(msg);
+            musicManager->queuedCondition.notify_all();
+
+            while (!musics.empty()) {
+                event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
+                dpp::message followMsg(event.command.channel_id, "");
+
+                followMsg.add_embed(musics.front()->embed);
+                event.from->creator->message_create(followMsg); // 어차피 원래 메시지를 지정해서 수정할 것이기 때문에 먼저 팔로잉 메시지를 작성해도 상관없음.
+
+                musicManager->queue_music(event.command.guild_id, musics.front());
+                musics.pop();
+            }
+        }
+        else {
+            msg.content = "검색 결과가 없습니다";
+            event.edit_original_response(msg);
+        }
+
+        if (musicManager->getNowPlaying(event.command.guild_id).id == "") {
+            dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
+
+            if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
+                event.edit_original_response(dpp::message("현재 음성 채팅방에 있는 상태가 아닙니다!"));
+                return;
+            }
+            
+            musicManager->play(v->voiceclient);
         }
     }
 

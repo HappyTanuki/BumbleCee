@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _ASYNCDOWNLOADMANAGER_HPP_
-#define _ASYNCDOWNLOADMANAGER_HPP_
 #include <queue>
 #include <string>
 #include <thread>
@@ -56,5 +54,3 @@ private:
     bool terminate;
 };
 }
-
-#endif

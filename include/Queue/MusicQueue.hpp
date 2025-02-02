@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _MUSICQUEUE_HPP_
-#define _MUSICQUEUE_HPP_
 #include <memory>
 #include <functional>
 #include <condition_variable>
@@ -17,17 +15,18 @@ public:
         currentPlayingPosition = queue.begin();
         repeat = true;
     }
-    void                                                    enqueue(std::shared_ptr<MusicQueueElement> Element);
-    std::shared_ptr<MusicQueueElement>                      dequeue();
-    std::list<std::shared_ptr<MusicQueueElement>>::iterator findById(std::string id);
-    std::list<std::shared_ptr<MusicQueueElement>>::iterator findByIndex(int index);
-    std::shared_ptr<MusicQueueElement>                      nowplaying();
-    std::list<std::shared_ptr<MusicQueueElement>>::iterator next_music();
-    std::shared_ptr<MusicQueueElement>                      jump_to_index(int idx);
-    void                                                    clear();
-    std::shared_ptr<MusicQueueElement>                      erase(std::list<std::shared_ptr<MusicQueueElement>>::iterator it);
-    std::list<std::shared_ptr<MusicQueueElement>>           getQueueCopy();
-    int                                                     size();
+    void                                                                                                                                enqueue(std::shared_ptr<MusicQueueElement> Element);
+    std::shared_ptr<MusicQueueElement>                                                                                                  dequeue();
+    std::list<std::shared_ptr<MusicQueueElement>>::iterator                                                                             findById(std::string id);
+    std::list<std::shared_ptr<MusicQueueElement>>::iterator                                                                             findByIndex(int index);
+    std::shared_ptr<MusicQueueElement>                                                                                                  nowplaying();
+    std::list<std::shared_ptr<MusicQueueElement>>::iterator                                                                             next_music();
+    std::shared_ptr<MusicQueueElement>                                                                                                  jump_to_index(int idx);
+    void                                                                                                                                clear();
+    std::shared_ptr<MusicQueueElement>                                                                                                  erase(std::list<std::shared_ptr<MusicQueueElement>>::iterator it);
+    std::pair<std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>>, std::list<std::shared_ptr<MusicQueueElement>>::iterator>  getQueueCopy();
+    int                                                                                                                                 size();
+    std::list<std::shared_ptr<MusicQueueElement>>::iterator                                                                             end();
 
     bool repeat;
 
@@ -37,5 +36,3 @@ private:
     std::mutex queueMutex;
 };
 }
-
-#endif

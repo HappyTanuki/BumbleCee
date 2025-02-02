@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _VERSIONCHECKUTILS_HPP_
-#define _VERSIONCHECKUTILS_HPP_
 #include <dpp/dpp.h>
 #include "ConsoleUtils.hpp"
 #include "../Settings/SettingsManager.hpp"
@@ -74,4 +72,3 @@ public:
     }
 };
 }
-#endif
