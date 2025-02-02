@@ -8,7 +8,7 @@ namespace bumbleBee::commands {
         dpp::message msg;
         dpp::embed embed;
 
-        auto queued = QueuedMusicListEmbedProvider::makeEmbed(*queue.first, queue.second, musicManager->getRepeat(event.command.guild_id));
+        auto queued = QueuedMusicListEmbedProvider::makeEmbed(queue.first, queue.second, musicManager->getRepeat(event.command.guild_id));
 
         // if (queue.first.size() == 0) {
         //     msg.add_embed(queued.front());
@@ -32,12 +32,38 @@ namespace bumbleBee::commands {
         }
 
         std::thread t([](std::queue<dpp::embed> queued, dpp::snowflake channel_id, dpp::cluster* cluster) {
-            for (; !queued.empty(); queued.pop()) {
-            dpp::message followMsg(channel_id, "현재 큐에 있는 항목:");
+            std::mutex messageorder;
+            std::unique_lock lock(messageorder);
+            std::condition_variable messageSentCondition;
+            bool messagesent = false;
+            if (!queued.empty()) {
+                dpp::message followMsg(channel_id, "현재 큐에 있는 항목:");
 
-            followMsg.add_embed(queued.front());
-            cluster->message_create(followMsg);
-        }
+                followMsg.add_embed(queued.front());
+                messagesent = false;
+                cluster->message_create(followMsg, [&](const dpp::confirmation_callback_t &callback){
+                    messagesent = true;
+                    messageSentCondition.notify_all();
+                });
+
+                messageSentCondition.wait(lock, [&](){ return messagesent; });
+
+                queued.pop();
+            }
+            while (!queued.empty()) {
+                dpp::message followMsg(channel_id, "");
+
+                followMsg.add_embed(queued.front());
+
+                messagesent = false;
+                cluster->message_create(followMsg, [&](const dpp::confirmation_callback_t &callback){
+                    messagesent = true;
+                    messageSentCondition.notify_all();
+                });
+
+                messageSentCondition.wait(lock, [&](){ return messagesent; });
+                queued.pop();
+            }
         }, queued, event.command.channel_id, event.from->creator);
         t.detach();
     }

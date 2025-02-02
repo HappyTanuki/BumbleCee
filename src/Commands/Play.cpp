@@ -2,6 +2,7 @@
 #include <Utils/ConsoleUtils.hpp>
 #include <Settings/SettingsManager.hpp>
 #include <dpp/nlohmann/json.hpp>
+#include <Utils/QueuedMusicListEmbedProvider.hpp>
 #include <variant>
 
 namespace bumbleBee::commands {
@@ -40,10 +41,9 @@ namespace bumbleBee::commands {
         else
             msg.content = "큐에 다음 곡을 추가했습니다:";
 
-        while (!ids.empty()) {
+        if (!ids.empty()) {
             if (ids.front() == "") {
                 ids.pop();
-                continue;
             }
 
             FILE* file = popen((SettingsManager::getYTDLP_CMD() +
@@ -92,6 +92,115 @@ namespace bumbleBee::commands {
             ids.pop();
         }
 
+        if (!ids.empty()) {
+            std::thread t([](
+                std::queue<std::string> ids,
+                dpp::snowflake guildId,
+                dpp::snowflake channelId,
+                std::string query,
+                dpp::user user,
+                dpp::cluster* cluster,
+                std::shared_ptr<MusicPlayManager> manager
+                ) {
+                    while (!ids.empty()) {
+                        if (ids.front() == "") {
+                            ids.pop();
+                            continue;
+                        }
+
+                        FILE* file = popen((SettingsManager::getYTDLP_CMD() +
+                            " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors -J http://youtu.be/" + ids.front()).c_str(), "r");
+                    
+                        std::ostringstream oss;
+                        char buffer[1024];
+                        size_t bytesRead;
+                        
+                        while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+                            oss.write(buffer, bytesRead);
+                        }
+                        pclose(file);
+
+                        std::istringstream iss(oss.str());
+                        nlohmann::json videoDataJson;
+                        iss >> videoDataJson;
+
+                        time_t SongLength = int(videoDataJson["duration"]);
+                        char SongLengthStr[13];
+                        tm t;
+                        t.tm_mday = SongLength / 86400;
+                        t.tm_hour = (SongLength % 86400)/3600;
+                        t.tm_min = (SongLength % 3600)/60;
+                        t.tm_sec = SongLength%60;
+                        if (t.tm_mday > 0)
+                            strftime(SongLengthStr, sizeof(SongLengthStr), "%d:%H:%M:%S", &t);
+                        else if (t.tm_hour > 0)
+                            strftime(SongLengthStr, sizeof(SongLengthStr), "%H:%M:%S", &t);
+                        else
+                            strftime(SongLengthStr, sizeof(SongLengthStr), "%M:%S", &t);
+
+                        dpp::embed embed = dpp::embed()
+                            .set_color(dpp::colors::sti_blue)
+                            .set_title(std::string(videoDataJson["title"]))
+                            .set_description(std::string(videoDataJson["uploader"]))
+                            .set_url(std::string(videoDataJson["webpage_url"]))
+                            .set_image(std::string(videoDataJson["thumbnail"]))
+                            .add_field(
+                                "길이",
+                                SongLengthStr,
+                                true
+                            );
+
+                        auto music = std::make_shared<MusicQueueElement>(ids.front(), query, user, embed);
+
+                        cluster->log(dpp::ll_info, "Enqueuing " + music->embed.title + " - " + music->id);
+                        manager->queue_music(guildId, music);
+                        ids.pop();
+                    }
+
+                    std::mutex messageorder;
+                    std::unique_lock lock(messageorder);
+                    std::condition_variable messageSentCondition;                   // 개씨발 코드 개더러워 ;;
+                    bool messagesent = false;
+                    auto queue = manager->getQueue(guildId);
+                    auto queued = QueuedMusicListEmbedProvider::makeEmbed(queue.first, queue.second, manager->getRepeat(guildId));
+                    if (!queued.empty()) {
+                        dpp::message followMsg(channelId, "현재 큐에 있는 항목:");
+
+                        followMsg.add_embed(queued.front());
+                        messagesent = false;
+                        cluster->message_create(followMsg, [&](const dpp::confirmation_callback_t &callback){
+                            messagesent = true;
+                            messageSentCondition.notify_all();
+                        });
+
+                        messageSentCondition.wait(lock, [&](){ return messagesent; });
+                        queued.pop();
+                    }
+                    while (!queued.empty()) {
+                        dpp::message followMsg(channelId, "");
+
+                        followMsg.add_embed(queued.front());
+                        messagesent = false;
+                        cluster->message_create(followMsg, [&](const dpp::confirmation_callback_t &callback){
+                            messagesent = true;
+                            messageSentCondition.notify_all();
+                        });
+
+                        messageSentCondition.wait(lock, [&](){ return messagesent; });
+                        queued.pop();
+                    }
+                },
+                ids,
+                event.command.guild_id,
+                event.command.channel_id,
+                query,
+                event.command.usr,
+                event.from->creator,
+                musicManager);
+
+            t.detach();
+        }
+        
         if (!musics.empty()) {
             event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
             musicManager->queue_music(event.command.guild_id, musics.front());
@@ -100,17 +209,6 @@ namespace bumbleBee::commands {
 
             event.edit_original_response(msg);
             musicManager->queuedCondition.notify_all();
-
-            while (!musics.empty()) {
-                event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
-                dpp::message followMsg(event.command.channel_id, "");
-
-                followMsg.add_embed(musics.front()->embed);
-                event.from->creator->message_create(followMsg); // 어차피 원래 메시지를 지정해서 수정할 것이기 때문에 먼저 팔로잉 메시지를 작성해도 상관없음.
-
-                musicManager->queue_music(event.command.guild_id, musics.front());
-                musics.pop();
-            }
         }
         else {
             msg.content = "검색 결과가 없습니다";
