@@ -8,7 +8,13 @@ C++ Dpp 라이브러리를 이용해서 개발된 간단한 디스코드 음악�
 # 어떻게 써요?
 1. 실행파일 경로에 config.json 파일을 만들고 다음과 같이 입력하세요:
 ```
-{"token": "디스코드에서 발급받은 개인 봇 토큰"}
+{
+    "CLEAR_PREVIOUS_COMMAND": true,
+    "FFMPEG_CMD": "ffmpeg",
+    "LOGLEVEL": "debug",
+    "TOKEN": "발급받은 토큰",
+    "YTDLP_CMD": "./yt-dlp"
+}
 ```
 2. Music 디렉터리를 만드세요
 3. Music/Archive 파일을 만드세요
