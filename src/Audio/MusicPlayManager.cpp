@@ -87,45 +87,52 @@ MusicQueueElement MusicPlayManager::getNowPlaying(const dpp::snowflake guildId) 
 }
 
 void MusicPlayManager::send_audio_to_voice(std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) {
-    std::string command = "./streamOpus.sh ";
-    command += SettingsManager::getYTDLP_CMD() + " ";
-    command += SettingsManager::getFFMPEG_CMD() + " ";
-    command += "https://youtu.be/";
-    command += music->id;
+    std::thread t([](std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) {
+        std::string command = "./streamOpus.sh ";
+        command += SettingsManager::getYTDLP_CMD() + " ";
+        command += SettingsManager::getFFMPEG_CMD() + " ";
+        command += "https://youtu.be/";
+        command += music->id;
 
-    OGGZ* og = oggz_open_stdio(popen(command.c_str(), "r"), OGGZ_READ);
+        OGGZ* og = oggz_open_stdio(popen(command.c_str(), "r"), OGGZ_READ);
 
-    client->stop_audio();
+        // client->stop_audio(); //이거 필요함??
 
-    oggz_set_read_callback(
-        og, -1,
-        [](OGGZ *oggz, oggz_packet *packet, long serialno, void *user_data) {
-            auto voiceConn = (dpp::discord_voice_client *)user_data;
+        oggz_set_read_callback(
+            og, -1,
+            [](OGGZ *oggz, oggz_packet *packet, long serialno, void *user_data) {
+                auto voiceConn = (dpp::discord_voice_client *)user_data;
 
-            voiceConn->send_audio_opus(packet->op.packet, packet->op.bytes);
+                voiceConn->send_audio_opus(packet->op.packet, packet->op.bytes);
 
-            return 0;
-        },
-        (void *)client
-    );
+                return 0;
+            },
+            (void *)client
+        );
 
-    while (client && !client->terminating && music != nullptr) {
-        static const constexpr long CHUNK_READ = BUFSIZ * 2;
+        while (client && !client->terminating && music != nullptr) {
+            static const constexpr long CHUNK_READ = BUFSIZ * 2;
 
-        const long read_bytes = oggz_read(og, CHUNK_READ);
+            const long read_bytes = oggz_read(og, CHUNK_READ);
 
-        /* break on eof */
-        if (!read_bytes) {
-            break;
+            /* break on eof */
+            if (!read_bytes) {
+                break;
+            }
         }
-    }
 
-    if (music != nullptr)
-        client->creator->log(dpp::ll_info, "Sending " + music->embed.title + " - " + music->id + " complete!");
+        if (music != nullptr)
+            client->creator->log(dpp::ll_info, "Sending " + music->embed.title + " - " + music->id + " complete!");
+        else {
+            client->stop_audio();
+            client->pause_audio(true);
+        }
 
-    oggz_close(og);
+        oggz_close(og);
 
-    client->insert_marker();
+        client->insert_marker();
+    }, music, client);
+    t.detach();
 }
 }
 

@@ -23,9 +23,11 @@ public:
 
     /// @brief 명령어 별명
     std::vector<std::string> aliases;
+
 private:
     /// @brief 봇 ID
     dpp::snowflake botID;
+    
 protected:
     /// @brief 음악재생 매니저
     std::shared_ptr<MusicPlayManager> musicManager;
@@ -51,9 +53,10 @@ public: \
         description = DESCRIPTION; \
         init(); \
     } \
-    virtual void execute(const dpp::slashcommand_t &event) override; \
+    void execute(const dpp::slashcommand_t &event) override; \
+    \
 protected: \
-    virtual void init() override; \
+    void init() override; \
 }; \
 }
 

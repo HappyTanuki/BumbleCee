@@ -222,8 +222,8 @@ namespace bumbleBee::commands {
                 event.edit_original_response(dpp::message("현재 음성 채팅방에 있는 상태가 아닙니다!"));
                 return;
             }
-            
-            musicManager->play(v->voiceclient);
+            v->voiceclient->insert_marker();
+            v->voiceclient->pause_audio(false);
         }
     }
 

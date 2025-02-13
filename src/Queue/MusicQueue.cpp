@@ -46,8 +46,10 @@ std::list<std::shared_ptr<MusicQueueElement>>::iterator MusicQueue::next_music()
     std::lock_guard<std::mutex> lock(queueMutex);
     if (currentPlayingPosition == --queue.end() && repeat)
         currentPlayingPosition = queue.begin();
-    else if (currentPlayingPosition == --queue.end() && !repeat)
+    else if (currentPlayingPosition == --queue.end() && !repeat) // 반복이 꺼져있을 때 큐 재생이 끝난 경우
         currentPlayingPosition = queue.end();
+    else if (currentPlayingPosition == queue.end() && !repeat) // 반복이 꺼져있고 현재 재생 곡이 없는데 새 곡이 들어왔을 경우
+        currentPlayingPosition = --queue.end();
     else
         ++currentPlayingPosition;
     return currentPlayingPosition;

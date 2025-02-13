@@ -20,6 +20,7 @@ public:
         }
         return returnValue;
     }
+    
 private:
     static dpp::embed makeEmbedPart(
         std::shared_ptr<std::list<std::shared_ptr<MusicQueueElement>>> queue,

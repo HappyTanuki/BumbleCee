@@ -7,7 +7,6 @@ namespace bumbleBee::commands {
 
         if (pos < 0 || pos > musicManager->size(event.command.guild_id))
         {
-
             event.edit_original_response(dpp::message(std::string("이상한 인덱스 위치. Pos :") + std::to_string(pos)));
             return;
         }
