@@ -1,21 +1,10 @@
 FROM debian:sid
 WORKDIR /
-RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get install -y libopus0
-RUN apt-get install -y tini
-RUN apt-get install -y liboggz2
-RUN apt-get install -y xz-utils
-RUN apt-get install -y python3
-RUN apt-get install -y python3-pip
-RUN apt-get install -y ffmpeg
-RUN apt-get install -y python3-certifi
-RUN apt-get install -y python3-brotli
-RUN apt-get install -y python3-websockets
-RUN apt-get install -y python3-requests
-RUN apt-get install -y python3-mutagen
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y curl libopus0 tini liboggz2 xz-utils python3 \
+        python3-pip ffmpeg python3-certifi python3-brotli python3-websockets python3-requests python3-mutagen && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages --no-cache-dir curl_cffi
 RUN pip3 install --break-system-packages --no-cache-dir pycryptodome
 RUN curl -Lo dpp.deb https://dl.dpp.dev/
