@@ -15,8 +15,7 @@ public:
             return true;
     }
 
-    static void validateYTDLPFFMPEGBinary(std::shared_ptr<dpp::cluster> cluster) {
-        cluster->log(dpp::ll_info, "Checking if yt-dlp and ffmpeg is available...");
+    static void validateFFMPEG(std::shared_ptr<dpp::cluster> cluster) {
         std::queue<std::string> result = ConsoleUtils::getResultFromCommand(SettingsManager::getFFMPEG_CMD() + " -version");
         std::string front = result.front();
         if (front[0] != 'f' ||
@@ -40,8 +39,11 @@ public:
             system("mv ffmpeg-master-latest-linux64-gpl ffmpeg");
             SettingsManager::setFFMPEG_CMD("./ffmpeg/bin/ffmpeg");
         }
-        result = ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() + " --version");
-        front = result.front();
+    }
+
+    static void validateYTDLP(std::shared_ptr<dpp::cluster> cluster) {
+        std::queue<std::string> result = ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() + " --version");
+        std::string front = result.front();
         if ((front[0]-'0' < 0 || front[0]-'0' > 9) ||
             (front[1]-'0' < 0 || front[1]-'0' > 9) ||
             (front[2]-'0' < 0 || front[2]-'0' > 9) ||
@@ -59,6 +61,12 @@ public:
             system("chmod +x ./yt-dlp");
             SettingsManager::setYTDLP_CMD("./yt-dlp");
         }
+    }
+
+    static void validateYTDLPFFMPEGBinary(std::shared_ptr<dpp::cluster> cluster) {
+        cluster->log(dpp::ll_info, "Checking if yt-dlp and ffmpeg is available...");
+        validateFFMPEG(cluster);
+        validateYTDLP(cluster);
     }
 
     static void updateytdlp(std::shared_ptr<dpp::cluster> cluster) {
