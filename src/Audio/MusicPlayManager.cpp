@@ -16,10 +16,10 @@ void MusicPlayManager::on_voice_track_marker(const dpp::voice_track_marker_t& ev
     play(event.voice_client);
 }
 
-void MusicPlayManager::on_voice_client_disconnect(const dpp::voice_client_disconnect_t& event) { // 안 불리는 듯?
-    dpp::snowflake gid = dpp::find_channel(event.voice_client->channel_id)->guild_id;
-    event.voice_client->stop_audio();
-    queueMap[gid]->clear();
+void MusicPlayManager::on_voice_client_disconnect(const dpp::voice_client_disconnect_t& event) { // 이거 봇이 나갈 때가 아니고 같이 있는 유저가 나갈 때였고
+    // dpp::snowflake gid = dpp::find_channel(event.voice_client->channel_id)->guild_id;
+    // event.voice_client->stop_audio();
+    // queueMap[gid]->clear();
 }
 
 void MusicPlayManager::play(dpp::discord_voice_client* client) {

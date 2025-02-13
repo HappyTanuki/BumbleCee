@@ -4,7 +4,7 @@ C++ Dpp 라이브러리를 이용해서 개발된 간단한 디스코드 음악�
 <div align="center">
   <a href="https://github.com/brainboxdotcc/DPP" alt="DPP"> <img src="DPP-markdown-logo.png" /> </a>
 </div>
-[![CodeFactor](https://www.codefactor.io/repository/github/happytanuki/bumblecee/badge)](https://www.codefactor.io/repository/github/happytanuki/bumblecee)
+[![CodeFactor](https://www.codefactor.io/repository/github/happytanuki/bumblecee/badge)][https://www.codefactor.io/repository/github/happytanuki/bumblecee]
 
 # 어떻게 써요?
 1. 실행파일 경로에 config.json 파일을 만들고 다음과 같이 입력하세요:
