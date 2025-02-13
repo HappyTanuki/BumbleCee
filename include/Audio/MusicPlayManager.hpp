@@ -52,6 +52,7 @@ public:
     MusicQueueElement getNowPlaying(const dpp::snowflake guildId);
 
     std::condition_variable queuedCondition;
+    
 private:
     std::shared_ptr<dpp::cluster> cluster;
 

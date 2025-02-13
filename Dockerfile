@@ -14,6 +14,8 @@ RUN apt-get install -y python3-brotli
 RUN apt-get install -y python3-websockets
 RUN apt-get install -y python3-requests
 RUN apt-get install -y python3-mutagen
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages --no-cache-dir curl_cffi
 RUN pip3 install --break-system-packages --no-cache-dir pycryptodome
 RUN curl -Lo dpp.deb https://dl.dpp.dev/
