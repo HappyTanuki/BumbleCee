@@ -8,7 +8,7 @@ namespace bumbleBee {
 
 std::string SettingsManager::TOKEN = "";
 std::string SettingsManager::YTDLP_CMD = "./yt-dlp";
-std::string SettingsManager::FFMPEG_CMD = "./ffmpeg/bin/ffmpeg";
+std::string SettingsManager::FFMPEG_CMD = "./ffmpeg";
 dpp::loglevel SettingsManager::LOGLEVEL = dpp::ll_debug;
 bool SettingsManager::REGISTER_COMMAND = false;
 

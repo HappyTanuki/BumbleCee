@@ -36,8 +36,9 @@ public:
             system("curl -LO https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz");
             system("tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz");
             system("rm ffmpeg-master-latest-linux64-gpl.tar.xz");
-            system("mv ffmpeg-master-latest-linux64-gpl ffmpeg");
-            SettingsManager::setFFMPEG_CMD("./ffmpeg/bin/ffmpeg");
+            system("mv ffmpeg-master-latest-linux64-gpl/bin/ffmpeg .");
+            system("rm -rf ffmpeg-master-latest-linux64-gpl");
+            SettingsManager::setFFMPEG_CMD("./ffmpeg");
         }
     }
 
