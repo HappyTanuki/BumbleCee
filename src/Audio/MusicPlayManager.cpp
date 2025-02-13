@@ -12,7 +12,7 @@ void MusicPlayManager::on_voice_ready(const dpp::voice_ready_t& event) {
 
 void MusicPlayManager::on_voice_track_marker(const dpp::voice_track_marker_t& event) {
     dpp::snowflake gid = dpp::find_channel(event.voice_client->channel_id)->guild_id;
-    queueMap[gid]->next_music();
+    queueMap[gid]->next_music(); // TODO("repeat가 꺼져 있을 때 노래 큐에서 지우기")
     play(event.voice_client);
 }
 
