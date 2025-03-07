@@ -87,7 +87,7 @@ MusicQueueElement MusicPlayManager::getNowPlaying(const dpp::snowflake guildId) 
 }
 
 void MusicPlayManager::send_audio_to_voice(std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) {
-    std::thread t([](std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) {
+    std::thread t([](std::shared_ptr<bumbleBee::MusicQueueElement> music, dpp::discord_voice_client* client) { // TODO: thread 벡터 만들고 delete, leave, skip시에 전송 중지하도록 만들기
         std::string command = "./streamOpus.sh ";
         command += SettingsManager::getYTDLP_CMD() + " ";
         command += SettingsManager::getFFMPEG_CMD() + " ";
