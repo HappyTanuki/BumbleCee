@@ -7,7 +7,7 @@ namespace bumbleBee {
 class VersionsCheckUtils {
 public:
     static bool isThereCMD(std::shared_ptr<dpp::cluster> cluster, std::string cmd) {
-        if (ConsoleUtils::getResultFromCommand("which " + cmd).size() == 0) {
+        if (ConsoleUtils::safe_execute_command("which", {cmd}).size() == 0) {
             cluster->log(dpp::ll_error, cmd + " is unavaliable. unresolable error please install " + cmd);
             return false;
         }
@@ -16,7 +16,7 @@ public:
     }
 
     static void validateFFMPEG(std::shared_ptr<dpp::cluster> cluster) {
-        std::queue<std::string> result = ConsoleUtils::getResultFromCommand(SettingsManager::getFFMPEG_CMD() + " -version");
+        std::queue<std::string> result = ConsoleUtils::safe_execute_command(SettingsManager::getFFMPEG_CMD(), {"-version"});
         std::string front = result.front();
         if (front[0] != 'f' ||
             front[1] != 'f' ||
@@ -43,7 +43,7 @@ public:
     }
 
     static void validateYTDLP(std::shared_ptr<dpp::cluster> cluster) {
-        std::queue<std::string> result = ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() + " --version");
+        std::queue<std::string> result = ConsoleUtils::safe_execute_command(SettingsManager::getYTDLP_CMD(), {"--version"});
         std::string front = result.front();
         if ((front[0]-'0' < 0 || front[0]-'0' > 9) ||
             (front[1]-'0' < 0 || front[1]-'0' > 9) ||
@@ -72,7 +72,7 @@ public:
 
     static void updateytdlp(std::shared_ptr<dpp::cluster> cluster) {
         cluster->log(dpp::ll_info, "Checking if yt-dlp update is available...");
-        std::queue<std::string> result = ConsoleUtils::getResultFromCommand("./yt-dlp -U");
+        std::queue<std::string> result = ConsoleUtils::safe_execute_command("./yt-dlp", {"-U"});
         while(!result.empty()) {
             std::string front = result.front();
             result.pop();

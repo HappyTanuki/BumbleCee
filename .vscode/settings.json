@@ -102,6 +102,8 @@
         "hash_set": "cpp",
         "regex": "cpp",
         "stack": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "__verbose_abort": "cpp",
+        "print": "cpp"
     }
 }

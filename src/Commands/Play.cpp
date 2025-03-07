@@ -3,6 +3,7 @@
 #include <Settings/SettingsManager.hpp>
 #include <dpp/nlohmann/json.hpp>
 #include <Utils/QueuedMusicListEmbedProvider.hpp>
+#include <Utils/ConsoleUtils.hpp>
 #include <variant>
 
 namespace bumbleBee::commands {
@@ -23,12 +24,20 @@ namespace bumbleBee::commands {
             return;
         }
         std::string query = std::get<std::string>(event.get_parameter("query"));
-        query = "\"" + query + "\"";
+        // query = "\"" + query + "\"";
 
         std::queue<std::string> ids =
-            ConsoleUtils::getResultFromCommand(
-            SettingsManager::getYTDLP_CMD() +
-            " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
+            ConsoleUtils::safe_execute_command(
+            SettingsManager::getYTDLP_CMD(), {
+            "--default-search",
+            "ytsearch",
+            "--flat-playlist",
+            "--skip-download",
+            "--quiet",
+            "--ignore-errors",
+            "--print",
+            "id",
+            query});
 
         std::queue<std::shared_ptr<MusicQueueElement>> musics;
 
@@ -46,19 +55,18 @@ namespace bumbleBee::commands {
                 ids.pop();
             }
 
-            FILE* file = popen((SettingsManager::getYTDLP_CMD() +
-                " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors -J http://youtu.be/" + ids.front()).c_str(), "r");
-        
-            std::ostringstream oss;
-            char buffer[1024];
-            size_t bytesRead;
-            
-            while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-                oss.write(buffer, bytesRead);
-            }
-            pclose(file);
+            std::string jsonData = ConsoleUtils::safe_execute_command(SettingsManager::getYTDLP_CMD(), {
+                "--default-search",
+                "ytsearch",
+                "--flat-playlist",
+                "--skip-download",
+                "--quiet",
+                "--ignore-errors",
+                "-J",
+                "http://youtu.be/" + ids.front()
+            }).front();
 
-            std::istringstream iss(oss.str());
+            std::istringstream iss(jsonData);
             nlohmann::json videoDataJson;
             iss >> videoDataJson;
 
@@ -108,19 +116,18 @@ namespace bumbleBee::commands {
                             continue;
                         }
 
-                        FILE* file = popen((SettingsManager::getYTDLP_CMD() +
-                            " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors -J http://youtu.be/" + ids.front()).c_str(), "r");
-                    
-                        std::ostringstream oss;
-                        char buffer[1024];
-                        size_t bytesRead;
-                        
-                        while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-                            oss.write(buffer, bytesRead);
-                        }
-                        pclose(file);
-
-                        std::istringstream iss(oss.str());
+                        std::string jsonData = ConsoleUtils::safe_execute_command(SettingsManager::getYTDLP_CMD(), {
+                            "--default-search",
+                            "ytsearch",
+                            "--flat-playlist",
+                            "--skip-download",
+                            "--quiet",
+                            "--ignore-errors",
+                            "-J",
+                            "http://youtu.be/" + ids.front()
+                        }).front();
+            
+                        std::istringstream iss(jsonData);
                         nlohmann::json videoDataJson;
                         iss >> videoDataJson;
 

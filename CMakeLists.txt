@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.6)
 
+INCLUDE_DIRECTORIES(include . ${Boost_INCLUDE_DIR})
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(BOT_NAME "BumbleCee")
 
@@ -18,8 +20,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+add_definitions( -DBOOST_ALL_NO_LIB )
+set( Boost_USE_STATIC_LIBS ON )
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Boost REQUIRED)
 
 target_include_directories(${BOT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -35,6 +40,7 @@ target_link_libraries(${BOT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     ${OPENSSL_CRYPTO_LIBRARY} 
     ${OPENSSL_SSL_LIBRARY}
+    ${Boost_LIBRARIES}
 )
 
 link_directories(/usr/lib)

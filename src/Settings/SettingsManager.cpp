@@ -14,13 +14,19 @@ bool SettingsManager::REGISTER_COMMAND = false;
 
 bool SettingsManager::validateToken() {
     nlohmann::json response;
-    if (ConsoleUtils::getResultFromCommand("which curl").size() == 0) {
+    std::string curl = ConsoleUtils::safe_execute_command("/usr/bin/which", {"curl"}).front();
+    if (curl == "") {
         std::cout << "curl is unavaliable. unresolable error please install curl." << std::endl;
         return false;
     }
 
-    std::string stresult = ConsoleUtils::getResultFromCommand("curl -sX GET \"https://discord.com/api/v10/users/@me\" -H \"Authorization: Bot " +
-        TOKEN + "\"").front();
+    std::string stresult = ConsoleUtils::safe_execute_command(curl, {
+        "-sX",
+        "GET",
+        "https://discord.com/api/v10/users/@me",
+        "-H",
+        "Authorization: Bot " + TOKEN + ""
+    }).front();
     std::stringstream ss(stresult);
     ss >> response;
 

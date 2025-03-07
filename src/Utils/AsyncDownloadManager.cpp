@@ -38,8 +38,17 @@ void AsyncDownloadManager::downloadWorker() {
         cluster->log(dpp::ll_info, "AsyncDownloadManager: " + query + " accepted.");
 
         std::queue<std::string> ids =
-            ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() +
-            " --default-search ytsearch --flat-playlist --skip-download --quiet --ignore-errors --print id " + query);
+            ConsoleUtils::safe_execute_command(
+            SettingsManager::getYTDLP_CMD(), {
+            "--default-search",
+            "ytsearch",
+            "--flat-playlist",
+            "--skip-download",
+            "--quiet",
+            "--ignore-errors",
+            "--print",
+            "id",
+            query});
 
         if (ids.size() >= 2) {
             cluster->log(dpp::ll_info, query + " is playlist");
@@ -56,8 +65,13 @@ void AsyncDownloadManager::downloadWorker() {
         }
 
         std::queue<std::string> urls =
-            ConsoleUtils::getResultFromCommand(SettingsManager::getYTDLP_CMD() +
-            " -f ba* --print urls https://youtu.be/" + ids.front());
+            ConsoleUtils::safe_execute_command(SettingsManager::getYTDLP_CMD(), {
+            "-f",
+            "ba*",
+            "--print",
+            "urls",
+            "https://youtu.be/" + ids.front()
+        });
 
         cluster->log(dpp::ll_debug, "url: " + urls.front());
 
@@ -75,8 +89,11 @@ void AsyncDownloadManager::downloadWorker() {
 
             cluster->log(dpp::ll_info, "Thread id: " + tid.str() + ": " + downloadID + " accepted.");
 
-            std::string command = std::string("./streamOpus.sh " + SettingsManager::getYTDLP_CMD() + " " + downloadID + " " + SettingsManager::getFFMPEG_CMD());
-            stream = popen(command.c_str(), "r");
+            stream = ConsoleUtils::safe_open_pipe("./streamOpus.sh", {
+                SettingsManager::getYTDLP_CMD(),
+                downloadID,
+                SettingsManager::getFFMPEG_CMD()
+            });
 
             cluster->log(dpp::ll_info, "Thread id: " + tid.str() + " Opened stream: " + downloadID);
         });
