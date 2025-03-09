@@ -7,7 +7,7 @@
 #include <variant>
 
 namespace bumbleBee::commands {
-    void Play::execute(const dpp::slashcommand_t &event) {
+    void Play::execute(const dpp::slashcommand_t &event) { // TODO : 길드 단위로 잠구고 메타데이터 로딩 중엔 로딩 중임을 표시할 수 있는 UI 만들 것것
         dpp::guild *g = dpp::find_guild(event.command.guild_id);
 
         if (!g) { //wtf?
