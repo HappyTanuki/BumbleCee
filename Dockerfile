@@ -7,8 +7,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages --no-cache-dir curl_cffi
 RUN pip3 install --break-system-packages --no-cache-dir pycryptodome
-RUN curl -Lo dpp.deb https://dl.dpp.dev/
+RUN curl -Lo dpp.deb https://dl.dpp.dev/latest
+RUN curl -Lo dpp-legacy.deb https://github.com/brainboxdotcc/DPP/releases/download/v10.0.35/libdpp-10.0.35-linux-x64.deb
 RUN dpkg -i dpp.deb
+RUN dpkg -i dpp-legacy.deb
 RUN rm dpp.deb
 RUN curl -LO https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
 RUN chmod +x ./yt-dlp

@@ -7,7 +7,7 @@ namespace bumbleBee {
 class VersionsCheckUtils {
 public:
     static bool isThereCMD(std::shared_ptr<dpp::cluster> cluster, std::string cmd) {
-        if (ConsoleUtils::safe_execute_command("which", {cmd}).size() == 0) {
+        if (ConsoleUtils::safe_execute_command("/usr/bin/which", {cmd}).size() == 0) {
             cluster->log(dpp::ll_error, cmd + " is unavaliable. unresolable error please install " + cmd);
             return false;
         }

@@ -50,7 +50,7 @@ namespace bumbleBee::commands {
         else
             msg.content = "큐에 다음 곡을 추가했습니다:";
 
-        if (!ids.empty()) {
+        if (!ids.empty()) { // TODO : 이거 멀티스레드로 바꿔서 더 빨리 정보를 받아올 수 있도록 개선할 것것
             if (ids.front() == "") {
                 ids.pop();
             }
