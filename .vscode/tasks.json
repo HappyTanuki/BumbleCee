@@ -4,8 +4,8 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "make",
-            "command": "make",
+            "label": "ninja",
+            "command": "ninja",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/build/"
@@ -21,7 +21,9 @@
             "label": "cmake",
             "command": "cmake",
             "args": [
-                ".."
+                "..",
+                "-G",
+                "Ninja"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/build/"
