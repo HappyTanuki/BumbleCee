@@ -1,4 +1,3 @@
-#include <winsock2.h>
 #include <boost/process.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>

@@ -51,12 +51,14 @@ FetchContent_MakeAvailable(dpp)
 # 플랫폼별 FFmpeg 바이너리 다운로드 및 링크
 # -------------------------------------------------------------
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    set(FFMPEG_URL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip")
+    set(FFMPEG_URL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl-shared.zip")
+    set(FFMPEG_SHA256HASH "SHA256=c95a9d4e030f694f33c85a7611204383a0bca906514a08d83d3858496b122f76")
     set(FFMPEG_ARCHIVE_NAME "ffmpeg-windows")
     set(FFMPEG_LIB_DIR "lib")
     set(FFMPEG_INCLUDE_DIR "include")
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(FFMPEG_URL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl-shared.tar.xz")
+    set(FFMPEG_SHA256HASH "SHA256=ebf6b197ffe52d798504895b4c2b84114ad5d2b406ac76e18374b44d1184ade3")
     set(FFMPEG_ARCHIVE_NAME "ffmpeg-linux")
     set(FFMPEG_LIB_DIR "lib")
     set(FFMPEG_INCLUDE_DIR "include")
@@ -67,6 +69,7 @@ endif()
 FetchContent_Declare(
     ffmpeg
     URL ${FFMPEG_URL}
+    URL_HASH ${FFMPEG_SHA256HASH}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${FFMPEG_ARCHIVE_NAME}
 )
