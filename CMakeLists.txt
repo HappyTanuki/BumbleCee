@@ -14,11 +14,11 @@ if(WIN32)
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
 
     if(CMAKE_BUILD_TYPE STREQUAL Debug)
-        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MTd/libcrypto.lib")
-        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MTd/libssl.lib")
+        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MDd/libcrypto.lib")
+        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MDd/libssl.lib")
     else()
-        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
-        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
+        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MD/libcrypto.lib")
+        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MD/libssl.lib")
     endif()
 endif()
 
@@ -30,6 +30,9 @@ FetchContent_Declare(
     Boost
     URL "https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.7z"
     DOWNLOAD_EXTRACT_TIMESTAMP ON
+    CMAKE_ARGS
+        -DBOOST_USE_STATIC_LIBS=OFF       # DLL 사용
+        -DBOOST_USE_STATIC_RUNTIME=OFF    # /MD, /MDd 사용
 )
 message(STATUS "Fetching and making available Boost...")
 FetchContent_MakeAvailable(Boost)
@@ -74,9 +77,13 @@ set(FFMPEG_LIBRARY_PATH ${ffmpeg_SOURCE_DIR}/${FFMPEG_LIB_DIR})
 set(FFMPEG_INCLUDE_PATH ${ffmpeg_SOURCE_DIR}/${FFMPEG_INCLUDE_DIR})
 
 find_library(AVCODEC_LIBRARY NAMES avcodec PATHS ${FFMPEG_LIBRARY_PATH} NO_DEFAULT_PATH)
+message(STATUS "AVCODEC_LIBRARY = ${AVCODEC_LIBRARY}")
 find_library(AVFORMAT_LIBRARY NAMES avformat PATHS ${FFMPEG_LIBRARY_PATH} NO_DEFAULT_PATH)
+message(STATUS "AVFORMAT_LIBRARY = ${AVFORMAT_LIBRARY}")
 find_library(AVUTIL_LIBRARY NAMES avutil PATHS ${FFMPEG_LIBRARY_PATH} NO_DEFAULT_PATH)
+message(STATUS "AVUTIL_LIBRARY = ${AVUTIL_LIBRARY}")
 find_library(SWSCALE_LIBRARY NAMES swscale PATHS ${FFMPEG_LIBRARY_PATH} NO_DEFAULT_PATH)
+message(STATUS "SWSCALE_LIBRARY = ${SWSCALE_LIBRARY}")
 
 if(NOT AVCODEC_LIBRARY OR NOT AVFORMAT_LIBRARY OR NOT AVUTIL_LIBRARY)
     message(FATAL_ERROR "FFmpeg 라이브러리를 찾을 수 없습니다. 다운로드 경로를 확인해주세요.")
@@ -108,9 +115,9 @@ target_link_libraries(${BOT_NAME} PRIVATE Boost::log)
 target_link_libraries(${BOT_NAME} PRIVATE Boost::beast)
 target_link_libraries(${BOT_NAME} PRIVATE OpenSSL::Crypto)
 target_link_libraries(${BOT_NAME} PRIVATE OpenSSL::SSL)
+target_link_libraries(${BOT_NAME} PRIVATE ${AVUTIL_LIBRARY})
 target_link_libraries(${BOT_NAME} PRIVATE ${AVCODEC_LIBRARY})
 target_link_libraries(${BOT_NAME} PRIVATE ${AVFORMAT_LIBRARY})
-target_link_libraries(${BOT_NAME} PRIVATE ${AVUTIL_LIBRARY})
 target_link_libraries(${BOT_NAME} PRIVATE ${SWSCALE_LIBRARY})
 
 if(WIN32)
@@ -142,4 +149,11 @@ add_custom_command(TARGET ${BOT_NAME} POST_BUILD
     "$<TARGET_FILE_DIR:Boost::process>"
     "$<TARGET_FILE_DIR:${BOT_NAME}>"
     COMMENT "Copying Boost.Process DLL/so files to output directory"
+)
+
+add_custom_command(TARGET ${BOT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_BINARY_DIR}/${FFMPEG_ARCHIVE_NAME}/bin"
+    "$<TARGET_FILE_DIR:${BOT_NAME}>"
+    COMMENT "Copying FFMpeg_AVCODEC DLL/so files to output directory"
 )
