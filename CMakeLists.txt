@@ -92,24 +92,18 @@ if(NOT AVCODEC_LIBRARY OR NOT AVFORMAT_LIBRARY OR NOT AVUTIL_LIBRARY)
     message(FATAL_ERROR "FFmpeg 라이브러리를 찾을 수 없습니다. 다운로드 경로를 확인해주세요.")
 endif()
 
-#file(GLOB_RECURSE CORES "src/*.cpp" "src/*.cxx" "src/*.cc")
-#file(GLOB_RECURSE AUDIO_SOURCES "src/Audio/*.cpp" "src/Audio/*.cxx" "src/Audio/*.cc")
-#file(GLOB_RECURSE COMMANDS_SOURCES "src/Commands/*.cpp" "src/Commands/*.cxx" "src/Commands/*.cc")
-#file(GLOB_RECURSE QUEUE_SOURCES "src/Queue/*.cpp" "src/Queue/*.cxx" "src/Queue/*.cc")
-#file(GLOB_RECURSE SETTINGS_SOURCES "src/Settings/*.cpp" "src/Settings/*.cxx" "src/Settings/*.cc")
-#file(GLOB_RECURSE UTILS_SOURCES "src/Utils/*.cpp" "src/Utils/*.cxx" "src/Utils/*.cc")
+file(GLOB_RECURSE CORES "src/*.cpp" "src/*.cxx" "src/*.cc")
 
-# Combine all found source files into a single list
-#set(ALL_SOURCE_FILES
-#    ${CORES}
-#    ${AUDIO_SOURCES}
-#    ${COMMANDS_SOURCES}
-#    ${QUEUE_SOURCES}
-#    ${SETTINGS_SOURCES}
-#    ${UTILS_SOURCES}
-#)
+set(ALL_SOURCE_FILES
+    ${CORES}
+    ${AUDIO_SOURCES}
+    ${COMMANDS_SOURCES}
+    ${QUEUE_SOURCES}
+    ${SETTINGS_SOURCES}
+    ${UTILS_SOURCES}
+)
 
-add_executable(${BOT_NAME} src/main.cpp)
+add_executable(${BOT_NAME} ${ALL_SOURCE_FILES})
 
 target_link_libraries(${BOT_NAME} PRIVATE dpp)
 target_link_libraries(${BOT_NAME} PRIVATE Boost::filesystem)
@@ -139,6 +133,8 @@ target_include_directories(${BOT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 
 target_include_directories(${BOT_NAME} PRIVATE ${OpenSSL_INCLUDE_DIRS})
 target_include_directories(${BOT_NAME} PRIVATE ${FFMPEG_INCLUDE_PATH})
+
+target_precompile_headers(${BOT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/precomp.h")
 
 add_custom_command(TARGET ${BOT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
