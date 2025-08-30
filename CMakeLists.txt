@@ -14,11 +14,11 @@ if(WIN32)
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
 
     if(CMAKE_BUILD_TYPE STREQUAL Debug)
-        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MDd/libcrypto.lib")
-        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MDd/libssl.lib")
+        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MTd/libcrypto.lib")
+        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MTd/libssl.lib")
     else()
-        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MD/libcrypto.lib")
-        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MD/libssl.lib")
+        set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libcrypto.lib")
+        set(OPENSSL_SSL_LIBRARY "${OPENSSL_ROOT_DIR}/lib/VC/x64/MT/libssl.lib")
     endif()
 endif()
 
@@ -31,8 +31,8 @@ FetchContent_Declare(
     URL "https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.7z"
     DOWNLOAD_EXTRACT_TIMESTAMP ON
     CMAKE_ARGS
-        -DBOOST_USE_STATIC_LIBS=OFF       # DLL 사용
-        -DBOOST_USE_STATIC_RUNTIME=OFF    # /MD, /MDd 사용
+        -DBOOST_USE_STATIC_LIBS=ON
+        -DBOOST_USE_STATIC_RUNTIME=ON
 )
 message(STATUS "Fetching and making available Boost...")
 FetchContent_MakeAvailable(Boost)
@@ -52,13 +52,11 @@ FetchContent_MakeAvailable(dpp)
 # -------------------------------------------------------------
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(FFMPEG_URL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl-shared.zip")
-    set(FFMPEG_SHA256HASH "SHA256=c95a9d4e030f694f33c85a7611204383a0bca906514a08d83d3858496b122f76")
     set(FFMPEG_ARCHIVE_NAME "ffmpeg-windows")
     set(FFMPEG_LIB_DIR "lib")
     set(FFMPEG_INCLUDE_DIR "include")
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(FFMPEG_URL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl-shared.tar.xz")
-    set(FFMPEG_SHA256HASH "SHA256=ebf6b197ffe52d798504895b4c2b84114ad5d2b406ac76e18374b44d1184ade3")
     set(FFMPEG_ARCHIVE_NAME "ffmpeg-linux")
     set(FFMPEG_LIB_DIR "lib")
     set(FFMPEG_INCLUDE_DIR "include")
@@ -69,7 +67,6 @@ endif()
 FetchContent_Declare(
     ffmpeg
     URL ${FFMPEG_URL}
-    URL_HASH ${FFMPEG_SHA256HASH}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${FFMPEG_ARCHIVE_NAME}
 )
@@ -135,20 +132,6 @@ target_include_directories(${BOT_NAME} PRIVATE ${OpenSSL_INCLUDE_DIRS})
 target_include_directories(${BOT_NAME} PRIVATE ${FFMPEG_INCLUDE_PATH})
 
 target_precompile_headers(${BOT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/precomp.h")
-
-add_custom_command(TARGET ${BOT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "$<TARGET_FILE_DIR:Boost::filesystem>"
-    "$<TARGET_FILE_DIR:${BOT_NAME}>"
-    COMMENT "Copying Boost.Filesystem DLL/so files to output directory"
-)
-
-add_custom_command(TARGET ${BOT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "$<TARGET_FILE_DIR:Boost::process>"
-    "$<TARGET_FILE_DIR:${BOT_NAME}>"
-    COMMENT "Copying Boost.Process DLL/so files to output directory"
-)
 
 add_custom_command(TARGET ${BOT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

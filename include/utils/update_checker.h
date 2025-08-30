@@ -7,7 +7,7 @@ namespace utils {
 
 int InstallYtdlp();
 
-int CheckUpdate();
+int CheckUpdate(boost::asio::io_context& ctx);
 
 }  // namespace utils
 

@@ -55,8 +55,17 @@ void DownloadFileFromHTTPS(std::string url, std::string filename) {
     boost::beast::http::write(stream, req);
 
     boost::beast::flat_buffer buffer;
-    boost::beast::http::response<boost::beast::http::dynamic_body> res;
-    boost::beast::http::read(stream, buffer, res);
+
+    // 응답 파서 만들기
+    boost::beast::http::response_parser<boost::beast::http::dynamic_body> parser;
+
+    // body 제한 해제 (무제한)
+    parser.body_limit((std::numeric_limits<std::uint64_t>::max)());
+
+    // 응답 읽기
+    boost::beast::http::read(stream, buffer, parser);
+
+    auto res = parser.release();
 
     int status = res.result_int();
     if (status / 100 == 3) {

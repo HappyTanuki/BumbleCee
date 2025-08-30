@@ -22,28 +22,44 @@ int InstallYtdlp() {
   return 0;
 }
 
-int CheckUpdate() {
-  char buf[16384];
+static int FindNewLinePos(std::string& string, int start_pos) {
+    int newline_pos = start_pos;
+    while (newline_pos < string.size()) {
+        if (string[newline_pos] == '\n') {
+            return newline_pos;
+        }
+        newline_pos++;
+    }
+    return newline_pos;
+}
 
-  if (ValidateCommand("yt-dlp") != 0) {
-    InstallYtdlp();
-    return 0;
+int CheckUpdate(boost::asio::io_context& ctx) {
+  std::string output = "";
+  int old_newline_pos = 0;
+  int newline_pos = 0;
+
+#ifdef WIN32
+  if (ExecuteCommand(ctx, "yt-dlp.exe", { "--version", "--newline" }, output) != 0) {
+      InstallYtdlp();
+      ExecuteCommand(ctx, "yt-dlp.exe", { "--version", "--newline" }, output);
   }
-
-  auto ytdlp_pipe = utils::OpenPipe("yt-dlp", {"-U"});
-
-  while (true) {
-    boost::system::error_code read_ec;
-    size_t bytes_read =
-        boost::asio::read(ytdlp_pipe, boost::asio::buffer(buf, 16384), read_ec);
-
-    if (bytes_read > 0) {
-      BOOST_LOG_TRIVIAL(info) << buf;
-    }
-
-    if (read_ec == boost::asio::error::eof || read_ec) {
-      break;
-    }
+  BOOST_LOG_TRIVIAL(info) << "yt-dlp version: " << output.substr(0, output.size()-1);
+  output = "";
+  ExecuteCommand(ctx, "yt-dlp.exe", { "-U", "--newline" }, output);
+#else
+  if (ExecuteCommand(ctx, "yt-dlp", { "--version", "--newline" }, output) != 0) {
+      InstallYtdlp();
+      ExecuteCommand(ctx, "yt-dlp", { "--version", "--newline" }, output);
+  }
+  BOOST_LOG_TRIVIAL(info) << "yt-dlp version: " << output.substr(0, output.size()-1);
+  output = "";
+  ExecuteCommand(ctx, "yt-dlp", { "-U", "--newline" }, output);
+#endif
+  while (newline_pos < output.size()) {
+      old_newline_pos = newline_pos;
+      newline_pos = FindNewLinePos(output, newline_pos);
+      BOOST_LOG_TRIVIAL(info) << output.substr(old_newline_pos, newline_pos - 1);
+      newline_pos++;
   }
 
   return 0;

@@ -3,33 +3,54 @@
 #include "utils/update_checker.h"
 
 int main(int argc, char* argv[]) {
-  boost::system::error_code ec;
-  char buf[16384];
-  std::string output;
+	boost::asio::io_context ctx;
+	boost::system::error_code ec;
+	char buf[8192];
+	std::string output;
 
-  utils::CheckUpdate();
+	utils::CheckUpdate(ctx);
 
-  // utils::ExecuteCommand("yt-dlp", {"-U"}, output);
-  // std::cout << output;
+#ifdef WIN32
+	/*try {
+		auto ytdlp_pipe = utils::OpenPipe(ctx,
+			"yt-dlp.exe", { "-o", "-", "--quiet", "--ignore-errors", "-f", "bestaudio",
+			"https://youtu.be/9_bTl2vvYQg?si=IVhvpDhnpPvziwQR" });
 
-  // auto ytdlp_pipe = utils::OpenPipe(
-  //     "yt-dlp", {"-o", "-", "--quiet", "--ignore-errors", "-f", "bestaudio",
-  //                "https://youtu.be/9_bTl2vvYQg?si=IVhvpDhnpPvziwQR"});
+		while (true) {
+			boost::system::error_code read_ec;
+			size_t bytes_read =
+				boost::asio::read(ytdlp_pipe, boost::asio::buffer(buf, 8192),
+					read_ec);
+			if (bytes_read > 0) {
+				std::cout.write(buf, bytes_read);
+			}
+			if (read_ec == boost::asio::error::eof || read_ec) {
+				break;
+			}
+		}
+	}
+	catch (const boost::process::system_error& e) {
+		std::string error = e.what();
+		return -1;
+	}*/
+#else
+	auto ytdlp_pipe = utils::OpenPipe(
+		"yt-dlp", { "-o", "-", "--quiet", "--ignore-errors", "-f", "bestaudio",
+		"https://youtu.be/9_bTl2vvYQg?si=IVhvpDhnpPvziwQR" });
 
-  // while (true) {
-  //   boost::system::error_code read_ec;
-  //   size_t bytes_read =
-  //       boost::asio::read(ytdlp_pipe, boost::asio::buffer(buf, 16384),
-  //       read_ec);
+	while (true) {
+		boost::system::error_code read_ec;
+		size_t bytes_read =
+			boost::asio::read(ytdlp_pipe, boost::asio::buffer(buf, 16384),
+				read_ec);
+		if (bytes_read > 0) {
+			std::cout.write(buf, bytes_read);
+		}
+		if (read_ec == boost::asio::error::eof || read_ec) {
+			break;
+		}
+	}
+#endif
 
-  //   if (bytes_read > 0) {
-  //     std::cout.write(buf, bytes_read);
-  //   }
-
-  //   if (read_ec == boost::asio::error::eof || read_ec) {
-  //     break;
-  //   }
-  // }
-
-  return 0;
+	return 0;
 }
