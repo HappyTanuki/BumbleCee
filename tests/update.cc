@@ -1,10 +1,8 @@
 #include "precomp.h"
-#include "utils/console.h"
 #include "utils/update_checker.h"
 
-int main(int argc, char* argv[]) {
+int main() {
   boost::asio::io_context ctx;
   utils::CheckUpdate(ctx);
-
   return 0;
 }
