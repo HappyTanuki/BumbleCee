@@ -6,7 +6,7 @@ int main() {
   boost::asio::io_context ctx;
   boost::system::error_code ec;
 
-  utils::CheckUpdate(ctx);
+  // utils::CheckUpdate(ctx);
 
   char buf[8192];
 #ifdef WIN32
