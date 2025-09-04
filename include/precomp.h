@@ -4,6 +4,8 @@
 #include <winsock2.h>
 #endif
 
+#include <dpp/dpp.h>
+
 #include <iostream>
 #include <queue>
 

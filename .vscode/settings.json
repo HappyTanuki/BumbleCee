@@ -4,6 +4,8 @@
             "column": 80
         }
     ],
+    "editor.renderWhitespace": "boundary",
+    "editor.formatOnSave": true,
     "cmake.generator": "Ninja",
     "files.associations": {
         "cctype": "cpp",
