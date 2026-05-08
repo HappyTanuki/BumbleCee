@@ -2,7 +2,7 @@
 
 namespace bumbleBee::commands {
     void Skip::execute(const dpp::slashcommand_t &event) {
-        dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
+        dpp::voiceconn* v = event.from()->get_voice(event.command.guild_id);
 
         if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
             event.edit_original_response(dpp::message("스킵하려면 음악을 재생중이어야 합니다!"));

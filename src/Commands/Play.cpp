@@ -19,7 +19,7 @@ namespace bumbleBee::commands {
             event.reply("노래를 재생하려면 검색어 또는 링크를 입력해 주십시오.");
             return;
         }
-        if (!event.from->get_voice(event.command.guild_id) && !g->connect_member_voice(event.command.usr.id)) {
+        if (!event.from()->get_voice(event.command.guild_id) && !g->connect_member_voice(*event.from()->creator, event.command.usr.id)) {
             event.edit_original_response(dpp::message("노래를 재생할 음성 채팅방에 먼저 참가하고 신청해야 합니다!"));
             return;
         }
@@ -202,14 +202,14 @@ namespace bumbleBee::commands {
                 event.command.channel_id,
                 query,
                 event.command.usr,
-                event.from->creator,
+                event.from()->creator,
                 musicManager);
 
             t.detach();
         }
         
         if (!musics.empty()) {
-            event.from->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
+            event.from()->creator->log(dpp::ll_info, "Enqueuing " + musics.front()->embed.title + " - " + musics.front()->id);
             musicManager->queue_music(event.command.guild_id, musics.front());
             msg.add_embed(musics.front()->embed);
             musics.pop();
@@ -223,7 +223,7 @@ namespace bumbleBee::commands {
         }
 
         if (musicManager->getNowPlaying(event.command.guild_id).id == "") {
-            dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
+            dpp::voiceconn* v = event.from()->get_voice(event.command.guild_id);
 
             if (!v || !v->voiceclient || !v->voiceclient->is_ready()) {
                 event.edit_original_response(dpp::message("현재 음성 채팅방에 있는 상태가 아닙니다!"));

@@ -15,7 +15,8 @@ aux_source_directory("src/Utils" settings)
 add_executable(${BOT_NAME} ${coresrc} ${commands} ${settings})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -38,7 +39,7 @@ target_link_libraries(${BOT_NAME}
     ogg
     oggz
     ${CMAKE_THREAD_LIBS_INIT}
-    ${OPENSSL_CRYPTO_LIBRARY} 
+    ${OPENSSL_CRYPTO_LIBRARY}
     ${OPENSSL_SSL_LIBRARY}
     ${Boost_LIBRARIES}
 )

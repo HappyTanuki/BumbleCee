@@ -17,8 +17,9 @@ public:
 
     static void validateFFMPEG(std::shared_ptr<dpp::cluster> cluster) {
         std::queue<std::string> result = ConsoleUtils::safe_execute_command(SettingsManager::getFFMPEG_CMD(), {"-version"});
-        std::string front = result.front();
-        if (front[0] != 'f' ||
+        std::string front = result.empty() ? "" : result.front();
+        if (front.size() < 6 ||
+            front[0] != 'f' ||
             front[1] != 'f' ||
             front[2] != 'm' ||
             front[3] != 'p' ||
@@ -26,12 +27,12 @@ public:
             front[5] != 'g') {
             cluster->log(dpp::ll_warning, "ffmpeg is unavailable. downloading ffmpeg...");
 
-            if (!isThereCMD(cluster, "curl")) {
-                exit(1);
-            }
-            if (!isThereCMD(cluster, "tar")) {
-                exit(1);
-            }
+            // if (!isThereCMD(cluster, "curl")) {
+            //     exit(1);
+            // }
+            // if (!isThereCMD(cluster, "tar")) {
+            //     exit(1);
+            // }
 
             system("curl -LO https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz");
             system("tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz");
@@ -44,19 +45,20 @@ public:
 
     static void validateYTDLP(std::shared_ptr<dpp::cluster> cluster) {
         std::queue<std::string> result = ConsoleUtils::safe_execute_command(SettingsManager::getYTDLP_CMD(), {"--version"});
-        std::string front = result.front();
-        if ((front[0]-'0' < 0 || front[0]-'0' > 9) ||
+        std::string front = result.empty() ? "" : result.front();
+        if (front.size() < 4 ||
+            (front[0]-'0' < 0 || front[0]-'0' > 9) ||
             (front[1]-'0' < 0 || front[1]-'0' > 9) ||
             (front[2]-'0' < 0 || front[2]-'0' > 9) ||
             (front[3]-'0' < 0 || front[3]-'0' > 9)) {
             cluster->log(dpp::ll_warning, "ytdlp is unavailable. downloading ytdlp...");
 
-            if (!isThereCMD(cluster, "curl")) {
-                exit(1);
-            }
-            if (!isThereCMD(cluster, "tar")) {
-                exit(1);
-            }
+            // if (!isThereCMD(cluster, "curl")) {
+            //     exit(1);
+            // }
+            // if (!isThereCMD(cluster, "tar")) {
+            //     exit(1);
+            // }
 
             system("curl -LO https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp");
             system("chmod +x ./yt-dlp");

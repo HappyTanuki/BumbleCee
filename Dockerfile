@@ -1,10 +1,11 @@
 FROM debian:sid
 WORKDIR /
 RUN apt-get update && \
-    apt-get install -y curl libopus0 tini liboggz2 xz-utils ffmpeg python3 \
+    apt-get install -y curl libopus0 tini liboggz2 xz-utils ffmpeg python3 p7zip-full \
         python3-pip python3-certifi python3-brotli python3-websockets python3-requests python3-mutagen && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deno.land/install.sh | sh
 RUN pip3 install --break-system-packages --no-cache-dir curl_cffi
 RUN pip3 install --break-system-packages --no-cache-dir pycryptodome
 RUN curl -Lo dpp.deb https://dl.dpp.dev/

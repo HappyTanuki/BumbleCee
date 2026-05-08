@@ -64,7 +64,7 @@ namespace bumbleBee::commands {
                 messageSentCondition.wait(lock, [&](){ return messagesent; });
                 queued.pop();
             }
-        }, queued, event.command.channel_id, event.from->creator);
+        }, queued, event.command.channel_id, event.from()->creator);
         t.detach();
     }
 

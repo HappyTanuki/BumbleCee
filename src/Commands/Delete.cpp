@@ -11,14 +11,14 @@ namespace bumbleBee::commands {
             return;
         }
 
-        dpp::voiceconn* v = event.from->get_voice(event.command.guild_id);
+        dpp::voiceconn* v = event.from()->get_voice(event.command.guild_id);
 
         std::shared_ptr<MusicQueueElement> removed;
-        
+
         if (!v) // v-> 로 nullptr을 참조하면 안 되므로.
             removed = musicManager->remove(event.command.guild_id, nullptr, pos);
         else
-            removed = musicManager->remove(event.command.guild_id, v->voiceclient, pos);
+            removed = musicManager->remove(event.command.guild_id, v->voiceclient.get(), pos);
 
         dpp::message msg("다음 항목을 큐에서 삭제했습니다!:");
         msg.add_embed(removed->embed);
